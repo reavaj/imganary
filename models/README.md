@@ -1,28 +1,71 @@
 # Local Vision Models
 
-This directory is reserved for local vision/recognition model configurations and utilities. Large model weight files (`.bin`, `.pt`, `.onnx`, `.safetensors`) are gitignored.
+Python package providing unified wrappers for local vision models. All analyzers implement the `ImageAnalyzer` ABC and return structured `AnalysisResult` objects.
 
 ## Supported Models
 
 ### LLaVA (via Ollama)
 
-General-purpose vision-language model. Used for scene description and understanding image content before generating GIMP edits.
+General-purpose vision-language model. Returns free-text scene descriptions.
 
 ```bash
 ollama pull llava
-ollama run llava "Describe this image" --images ./path/to/image.jpg
 ```
 
-### YOLO
+### YOLO (Ultralytics YOLOv8)
 
-Object detection model. Useful for identifying and locating specific objects in images.
+Object detection. Returns detected objects with bounding boxes and confidence scores. The `yolov8n.pt` model (~6MB) auto-downloads on first use.
 
-### CLIP
+### CLIP (OpenAI)
 
-Semantic image understanding. Enables natural-language queries about image content.
+Semantic image understanding. Zero-shot classification against candidate labels. Model weights (~600MB) download on first use.
+
+## Usage
+
+```python
+from models import create_analyzer, AnalyzerType
+
+# Single analyzer
+analyzer = create_analyzer(AnalyzerType.LLAVA)
+result = analyzer.analyze("photo.jpg")
+print(result.scene_description.description)
+
+# YOLO
+yolo = create_analyzer(AnalyzerType.YOLO)
+result = yolo.analyze("photo.jpg")
+for obj in result.detected_objects:
+    print(f"{obj.label}: {obj.confidence:.2f}")
+
+# CLIP
+clip = create_analyzer(AnalyzerType.CLIP)
+result = clip.analyze("photo.jpg")
+for match in result.semantic_matches:
+    print(f"{match.label}: {match.score:.2f}")
+
+# All analyzers at once
+from models import create_all_analyzers
+analyzers = create_all_analyzers()
+for name, analyzer in analyzers.items():
+    print(analyzer.analyze("photo.jpg"))
+```
+
+## Configuration
+
+All settings are loaded from environment variables (prefix `IMGANARY_`) or a `.env` file. See `.env.example` at the project root.
 
 ## Workflow
 
 ```
 image path → local model → scene description → Claude generates GIMP script → script saved to library
 ```
+
+## Module Structure
+
+- `interfaces.py` — `ImageAnalyzer` ABC, `AnalysisResult`, and all Pydantic result models
+- `config.py` — `ModelSettings` (pydantic-settings)
+- `llava_analyzer.py` — LLaVA wrapper (httpx → Ollama API)
+- `yolo_analyzer.py` — YOLO wrapper (ultralytics)
+- `clip_analyzer.py` — CLIP wrapper (transformers + torch)
+- `factory.py` — `create_analyzer()` and `create_all_analyzers()` factory functions
+- `exceptions.py` — Custom exception hierarchy
+- `logging.py` — JSON structured logger
