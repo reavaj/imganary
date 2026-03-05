@@ -16,12 +16,17 @@ Verify Python-Fu works:
 gimp -i -b '(gimp-version)' -b '(gimp-quit 0)'
 ```
 
-### 2. Python 3.10
+### 2. Python 3.12 (ARM)
 
-Python 3.10 is required (PyTorch 2.2.2 compatibility). Newer Python versions may not have PyTorch wheels available.
+Python 3.12 via ARM Homebrew is recommended on Apple Silicon for native PyTorch support.
 
 ```bash
-python3.10 --version
+# Install ARM Homebrew (if not already at /opt/homebrew)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Python 3.12
+/opt/homebrew/bin/brew install python@3.12
+/opt/homebrew/bin/python3.12 --version
 ```
 
 ### 3. Ollama (Local Vision Models)
