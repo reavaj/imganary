@@ -4,7 +4,7 @@ Maps Claude Code skills to the GIMP scripts they generate.
 
 | Skill | Category | Script(s) Generated | Description |
 |-------|----------|---------------------|-------------|
-| — | — | — | *No skills registered yet* |
+| color-harmonize | gimp-core | `scripts/color/harmonize.py` | Recolor images using harmonious color palettes via GIMP |
 
 ## How to Add Entries
 
