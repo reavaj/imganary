@@ -4,9 +4,10 @@ GIMP 3.x Python-Fu script: Color Harmonize
 Remaps image hues to a harmonious palette while preserving luminance and saturation.
 
 Config variables at the top are injected by Claude before writing to a temp file.
-Run via: gimp -n -i --batch-interpreter=python-fu-eval \
-           -b 'exec(open("/tmp/imganary_harmonize.py").read())' \
-           -b '(gimp-quit 0)'
+Run via: /Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+           --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
+           --batch-interpreter=python-fu-eval \
+           -b 'exec(open("/tmp/imganary_harmonize.py").read())'
 """
 
 # === CONFIG (injected by Claude) ===
@@ -21,6 +22,7 @@ gi.require_version("Gegl", "0.4")
 from gi.repository import Gimp, Gegl, GLib, Gio
 import colorsys
 import math
+import random
 import sys
 
 # === COLOR HARMONY MATH ===
@@ -75,32 +77,27 @@ def find_nearest_palette_hue(range_center, palette):
 
 # === DOMINANT HUE DETECTION ===
 
-def detect_dominant_hue(image):
+def detect_dominant_hue(drawable, num_samples=1000):
     """
-    Sample pixels from the image, build a hue histogram, return the dominant hue.
+    Randomly sample pixels from a drawable, build a hue histogram, return the dominant hue.
     Returns hue in degrees (0-360).
     """
-    drawable = image.get_active_drawable()
     width = drawable.get_width()
     height = drawable.get_height()
 
-    # Sample on a grid (every 10th pixel, capped at ~10000 samples)
-    step = max(1, int(math.sqrt(width * height / 10000)))
     histogram = [0] * 36  # 36 bins of 10 degrees each
 
-    for y in range(0, height, step):
-        for x in range(0, width, step):
-            # Get pixel color at (x, y)
-            success, color = drawable.get_pixel(x, y)
-            if not success:
-                continue
-            r, g, b, a = color.get_rgba()
-            h, s, v = colorsys.rgb_to_hsv(r, g, b)
-            # Only count pixels with enough saturation and brightness
-            if s > 0.1 and v > 0.1:
-                hue_deg = h * 360
-                bin_idx = int(hue_deg / 10) % 36
-                histogram[bin_idx] += 1
+    for _ in range(num_samples):
+        x = random.randint(0, width - 1)
+        y = random.randint(0, height - 1)
+        # get_pixel returns a Gegl.Color directly in GIMP 3.x
+        color = drawable.get_pixel(x, y)
+        rgba = color.get_rgba()
+        h, s, v = colorsys.rgb_to_hsv(rgba.red, rgba.green, rgba.blue)
+        # Only count pixels with enough saturation and brightness
+        if s > 0.1 and v > 0.1:
+            bin_idx = int(h * 36) % 36
+            histogram[bin_idx] += 1
 
     # Find the peak bin
     if max(histogram) == 0:
@@ -121,10 +118,11 @@ def run():
         Gimp.quit(1)
         return
 
-    drawable = image.get_active_drawable()
+    # GIMP 3.x: get_layers() instead of get_active_drawable()
+    drawable = image.get_layers()[0]
 
     # Detect dominant hue
-    dominant_hue = detect_dominant_hue(image)
+    dominant_hue = detect_dominant_hue(drawable)
     print(f"Dominant hue: {dominant_hue:.0f} degrees")
 
     # Build palette
@@ -133,12 +131,12 @@ def run():
     print(f"Palette hues: {[f'{h:.0f}' for h in palette]}")
 
     # Remap each GIMP hue range to the nearest palette color
+    # GIMP 3.x: hue_saturation is a method on drawable
     for hue_range, center in HUE_RANGES:
         nearest = find_nearest_palette_hue(center, palette)
         offset = signed_hue_offset(center, nearest)
         if abs(offset) > 0.5:  # Only apply if there's a meaningful shift
-            Gimp.drawable_hue_saturation(
-                drawable,
+            drawable.hue_saturation(
                 hue_range,
                 offset,   # hue offset
                 0.0,      # lightness offset
@@ -149,14 +147,14 @@ def run():
 
     # Flatten and export
     image.flatten()
-    drawable = image.get_active_drawable()
 
     out_file = Gio.File.new_for_path(OUTPUT_PATH)
-    Gimp.file_overwrite(Gimp.RunMode.NONINTERACTIVE, image, drawable, out_file)
+    Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, image, out_file)
 
     print(f"Output saved to: {OUTPUT_PATH}")
 
     # Clean up
     image.delete()
+    Gimp.quit()
 
 run()

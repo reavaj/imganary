@@ -70,11 +70,20 @@ Default to **complementary** if the user says "just pick one" or doesn't have a 
 
 ### Step 5: Run GIMP batch
 
-Execute this command:
+**macOS** — Use `gimp-console` with `--no-data` and the batch gimprc to avoid plugin initialization hangs:
+
+```bash
+timeout 120 /Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+  --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
+  --batch-interpreter=python-fu-eval \
+  -b "exec(open('/tmp/imganary_harmonize.py').read())" 2>&1
+```
+
+**Linux** — Standard GIMP batch mode works:
 
 ```bash
 gimp -n -i --batch-interpreter=python-fu-eval \
-  -b 'exec(open("/tmp/imganary_harmonize.py").read())' \
+  -b "exec(open('/tmp/imganary_harmonize.py').read())" \
   -b '(gimp-quit 0)' 2>&1
 ```
 
@@ -85,12 +94,9 @@ The script will print progress to stdout:
 - Per-range hue shifts applied
 - `Output saved to: /path/to/output.png`
 
-**macOS Note**: GIMP 3.0.x batch mode may hang on macOS due to a known initialization bug.
-If the command hangs for more than 60 seconds, tell the user to:
-1. Open GIMP GUI manually
-2. Go to **Filters > Python-Fu > Console**
-3. Paste and run: `exec(open("/tmp/imganary_harmonize.py").read())`
-4. This is a known GIMP 3.x macOS issue — batch mode works correctly on Linux.
+**macOS Setup Note**: The batch gimprc and filtered plugin directory must exist. If missing, create them:
+1. Create `~/Library/Application Support/GIMP/3.0/batch-plug-ins/` with symlinks to all system plugins EXCEPT `file-rawtherapee` (which hangs during init on macOS)
+2. Create `~/Library/Application Support/GIMP/3.0/batch-gimprc` containing: `(plug-in-path "${gimp_dir}/plug-ins:${gimp_dir}/batch-plug-ins")`
 
 ### Step 6: Present the result
 
@@ -107,30 +113,36 @@ If the command fails, check:
 
 ## GIMP Batch Mode Reference
 
-Two patterns for running Python-Fu scripts in GIMP headless mode:
-
-**Pattern 1 — External script file (used by this skill):**
+**macOS — gimp-console (recommended):**
 ```bash
-gimp -n -i --batch-interpreter=python-fu-eval \
-  -b 'exec(open("/path/to/script.py").read())' \
-  -b '(gimp-quit 0)'
+/Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+  --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
+  --batch-interpreter=python-fu-eval \
+  -b "exec(open('/path/to/script.py').read())"
 ```
+The script should call `Gimp.quit(0)` at the end to exit cleanly.
 
-**Pattern 2 — Inline Python:**
+**Linux — standard gimp:**
 ```bash
 gimp -n -i --batch-interpreter=python-fu-eval \
-  -b 'print(Gimp.version())' \
+  -b "exec(open('/path/to/script.py').read())" \
   -b '(gimp-quit 0)'
 ```
 
 Flags:
 - `-n` — Start a new GIMP instance
 - `-i` — No user interface (headless)
+- `--no-data` — Skip loading brushes, gradients, patterns (faster startup)
+- `--gimprc=...` — Use custom config (macOS: excludes problematic plugins)
 - `--batch-interpreter=python-fu-eval` — Use Python-Fu instead of Script-Fu
 - `-b '...'` — Batch command to execute
-- The final `-b '(gimp-quit 0)'` uses Script-Fu syntax to quit GIMP cleanly
 
-Note: GIMP 3.x uses Python 3. The old `execfile()` from GIMP 2.x is replaced by `exec(open(...).read())`.
+GIMP 3.x API notes:
+- Python 3 only. Use `exec(open(...).read())` not `execfile()`
+- `image.get_layers()[0]` instead of `image.get_active_drawable()`
+- `drawable.hue_saturation(range, hue, light, sat, overlap)` — method on drawable
+- `drawable.get_pixel(x, y)` returns `Gegl.Color`; use `.get_rgba()` for components
+- `Gimp.file_save(RunMode.NONINTERACTIVE, image, gio_file)` — 3 args
 
 ## Output
 
