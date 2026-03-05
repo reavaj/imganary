@@ -16,10 +16,12 @@ Verify Python-Fu works:
 gimp -i -b '(gimp-version)' -b '(gimp-quit 0)'
 ```
 
-### 2. Python 3.x
+### 2. Python 3.10
+
+Python 3.10 is required (PyTorch 2.2.2 compatibility). Newer Python versions may not have PyTorch wheels available.
 
 ```bash
-python3 --version  # 3.9+ recommended
+python3.10 --version
 ```
 
 ### 3. Ollama (Local Vision Models)

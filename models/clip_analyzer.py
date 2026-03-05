@@ -25,7 +25,9 @@ class ClipAnalyzer(ImageAnalyzer):
             from transformers import CLIPModel, CLIPProcessor
 
             model_name = self._settings.clip_model_name
-            self._processor = CLIPProcessor.from_pretrained(model_name)
+            self._processor = CLIPProcessor.from_pretrained(
+                model_name, use_fast=False
+            )
             self._model = CLIPModel.from_pretrained(model_name)
             self._logger.info(
                 "CLIP model loaded",
