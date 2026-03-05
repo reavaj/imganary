@@ -1,4 +1,6 @@
+import os
 import time
+import warnings
 from pathlib import Path
 from typing import List, Optional
 
@@ -22,11 +24,21 @@ class ClipAnalyzer(ImageAnalyzer):
 
     def _load_model(self):
         if self._model is None:
+            import contextlib
+
+            os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+            os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+
             from transformers import CLIPModel, CLIPProcessor
 
             model_name = self._settings.clip_model_name
-            self._processor = CLIPProcessor.from_pretrained(model_name)
-            self._model = CLIPModel.from_pretrained(model_name)
+            # Suppress all stderr/warnings during model loading
+            with warnings.catch_warnings(), \
+                    open(os.devnull, "w") as devnull, \
+                    contextlib.redirect_stderr(devnull):
+                warnings.simplefilter("ignore")
+                self._processor = CLIPProcessor.from_pretrained(model_name)
+                self._model = CLIPModel.from_pretrained(model_name)
             self._logger.info(
                 "CLIP model loaded",
                 extra={"props": {"model_name": model_name}},

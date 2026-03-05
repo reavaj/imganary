@@ -29,6 +29,8 @@ def get_logger(service_name: str, level: str = "INFO") -> logging.Logger:
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(JSONFormatter(service_name=service_name))
         logger.addHandler(handler)
-        logger.setLevel(level.upper())
+        # Only set level if not already configured (allows CLI to pre-set level)
+        if logger.level == logging.NOTSET:
+            logger.setLevel(level.upper())
         logger.propagate = False
     return logger
