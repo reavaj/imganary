@@ -62,23 +62,27 @@ This tells GIMP to load plugins from the user's `batch-plug-ins/` directory (wit
 ## Working Command
 
 ```bash
-timeout 120 /Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+LSBackgroundOnly=1 /Applications/GIMP.app/Contents/MacOS/gimp-console \
+  -n -i --no-data --quit \
   --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
   --batch-interpreter=python-fu-eval \
   -b "exec(open('/path/to/script.py').read())"
 ```
 
+This exits cleanly with code 0. No `timeout` wrapper needed.
+
 Flags explained:
+- `LSBackgroundOnly=1` — macOS env var that suppresses the dock icon (prevents bouncing)
 - `/Applications/GIMP.app/Contents/MacOS/gimp-console` — console binary, no GUI
 - `-n` — new instance
 - `-i` — headless (no user interface)
 - `--no-data` — skip loading brushes, gradients, patterns (faster startup)
+- `--quit` — exit cleanly after all batch commands complete
 - `--gimprc=...` — use our filtered config (skips problematic plugins)
 - `--batch-interpreter=python-fu-eval` — Python-Fu instead of Script-Fu
 - `-b "exec(open('...').read())"` — execute external script file
-- `timeout 120` — safety net in case something hangs
 
-**Important**: The script should call `Gimp.quit()` at the end (no arguments — GIMP 3.x changed the signature). Wrap the whole thing in `timeout` as a safety net.
+**Important**: Do NOT call `Gimp.quit()` in your script — the `--quit` flag handles clean exit. Calling `Gimp.quit()` causes a race condition where GIMP terminates before the batch wrapper can collect the return value.
 
 ## GIMP 3.x Python API Differences
 
@@ -93,7 +97,9 @@ The GIMP 3.x (GObject Introspection) API differs significantly from GIMP 2.x:
 | Hue/saturation | `gimp_drawable_hue_saturation(drawable, range, ...)` | `drawable.hue_saturation(range, hue, light, sat, overlap)` |
 | File load | `pdb.gimp_file_load(path, path)` | `Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, Gio.File.new_for_path(path))` |
 | File save | `pdb.gimp_file_overwrite(...)` | `Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, image, Gio.File.new_for_path(path))` |
-| Quit | `gimp.quit(0)` | `Gimp.quit()` (no arguments) |
+| Desaturate | `pdb.gimp_desaturate_full(drawable, mode)` | `drawable.desaturate(Gimp.DesaturateMode.LUMINANCE)` |
+| Curves spline | `pdb.gimp_curves_spline(drawable, ch, n, pts)` | `drawable.curves_spline(channel, [pts])` (no num_points arg) |
+| Quit | `gimp.quit(0)` | Don't call — use `--quit` CLI flag instead |
 | Python version | Python 2 + `execfile()` | Python 3 + `exec(open(...).read())` |
 
 ### Imports for GIMP 3.x scripts
@@ -117,11 +123,14 @@ from gi.repository import Gimp, Gegl, GLib, Gio
 |---------|-------|-----|
 | GIMP hangs on startup | Plugin initialization hang | Use `gimp-console` + `--no-data` + filtered `--gimprc` |
 | "Operation not permitted" modifying app bundle | macOS code signing | Don't modify the app bundle; use symlinks in user config |
+| GIMP icon bounces in dock | `gimp-console` registers with window server | Set `LSBackgroundOnly=1` env var before the command |
 | GIMP launches in taskbar and crashes | GUI initialization on macOS | Use `gimp-console` instead of `gimp` |
-| `Gimp.quit()` error: takes 0 arguments | GIMP 3.x API change | Call `Gimp.quit()` with no args |
 | `get_active_drawable` AttributeError | GIMP 3.x API change | Use `image.get_layers()[0]` |
-| Script runs but GIMP stays alive | `Gimp.quit()` not called or no `timeout` | Add `Gimp.quit()` at end of script + `timeout` wrapper |
-| "Procedure 'python-fu-eval' returned no return values" | `Gimp.quit()` exits before batch wrapper can collect result | This is normal — the script ran successfully |
+| Script runs but GIMP stays alive (EXIT 124) | GIMP runs as background daemon after batch | Use `--quit` flag — exits cleanly with code 0 |
+| `Gimp.quit()` error: takes 0 arguments | GIMP 3.x API change | Don't call `Gimp.quit()` at all — use `--quit` flag instead |
+| "Procedure 'python-fu-eval' returned no return values" | `Gimp.quit()` exits before batch wrapper can collect result | Don't call `Gimp.quit()` — use `--quit` flag |
+| `DesaturateMode.LUMINOSITY` not found | GIMP 3.x enum rename | Use `DesaturateMode.LUMINANCE` |
+| `curves_spline()` wrong arg count | GIMP 3.x removed num_points arg | Use `drawable.curves_spline(channel, [pts])` (2 args, not 3) |
 
 ## Linux
 

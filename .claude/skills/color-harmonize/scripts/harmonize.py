@@ -4,7 +4,8 @@ GIMP 3.x Python-Fu script: Color Harmonize
 Remaps image hues to a harmonious palette while preserving luminance and saturation.
 
 Config variables at the top are injected by Claude before writing to a temp file.
-Run via: /Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+Run via: LSBackgroundOnly=1 /Applications/GIMP.app/Contents/MacOS/gimp-console \
+           -n -i --no-data --quit \
            --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
            --batch-interpreter=python-fu-eval \
            -b 'exec(open("/tmp/imganary_harmonize.py").read())'
@@ -115,7 +116,6 @@ def run():
     image = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file)
     if image is None:
         print(f"ERROR: Failed to load image: {INPUT_PATH}")
-        Gimp.quit(1)
         return
 
     # GIMP 3.x: get_layers() instead of get_active_drawable()
@@ -153,8 +153,7 @@ def run():
 
     print(f"Output saved to: {OUTPUT_PATH}")
 
-    # Clean up
+    # Clean up — --quit flag handles GIMP exit
     image.delete()
-    Gimp.quit()
 
 run()

@@ -70,19 +70,23 @@ Default to **complementary** if the user says "just pick one" or doesn't have a 
 
 ### Step 5: Run GIMP batch
 
-**macOS** — Use `gimp-console` with `--no-data` and the batch gimprc to avoid plugin initialization hangs:
+**macOS** — Use `gimp-console` with `--quit`, `--no-data`, and the batch gimprc:
 
 ```bash
-timeout 120 /Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+LSBackgroundOnly=1 /Applications/GIMP.app/Contents/MacOS/gimp-console \
+  -n -i --no-data --quit \
   --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
   --batch-interpreter=python-fu-eval \
   -b "exec(open('/tmp/imganary_harmonize.py').read())" 2>&1
 ```
 
+- `LSBackgroundOnly=1` — suppresses the dock icon on macOS
+- `--quit` — exits cleanly after batch commands (no timeout needed)
+
 **Linux** — Standard GIMP batch mode works:
 
 ```bash
-gimp -n -i --batch-interpreter=python-fu-eval \
+gimp -n -i --no-data --batch-interpreter=python-fu-eval \
   -b "exec(open('/tmp/imganary_harmonize.py').read())" \
   -b '(gimp-quit 0)' 2>&1
 ```
@@ -115,24 +119,27 @@ If the command fails, check:
 
 **macOS — gimp-console (recommended):**
 ```bash
-/Applications/GIMP.app/Contents/MacOS/gimp-console -n -i --no-data \
+LSBackgroundOnly=1 /Applications/GIMP.app/Contents/MacOS/gimp-console \
+  -n -i --no-data --quit \
   --gimprc="$HOME/Library/Application Support/GIMP/3.0/batch-gimprc" \
   --batch-interpreter=python-fu-eval \
   -b "exec(open('/path/to/script.py').read())"
 ```
-The script should call `Gimp.quit(0)` at the end to exit cleanly.
+The script should NOT call `Gimp.quit()` — the `--quit` flag handles clean exit.
 
 **Linux — standard gimp:**
 ```bash
-gimp -n -i --batch-interpreter=python-fu-eval \
+gimp -n -i --no-data --batch-interpreter=python-fu-eval \
   -b "exec(open('/path/to/script.py').read())" \
   -b '(gimp-quit 0)'
 ```
 
 Flags:
+- `LSBackgroundOnly=1` — (macOS) suppresses dock icon during headless execution
 - `-n` — Start a new GIMP instance
 - `-i` — No user interface (headless)
 - `--no-data` — Skip loading brushes, gradients, patterns (faster startup)
+- `--quit` — (macOS) exit cleanly after batch commands complete
 - `--gimprc=...` — Use custom config (macOS: excludes problematic plugins)
 - `--batch-interpreter=python-fu-eval` — Use Python-Fu instead of Script-Fu
 - `-b '...'` — Batch command to execute
