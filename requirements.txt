@@ -1,3 +1,6 @@
+# Claude API (chat agent)
+anthropic>=0.40.0
+
 # PyTorch (requires ARM Python 3.12 on Apple Silicon)
 torch>=2.4
 

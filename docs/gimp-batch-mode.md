@@ -101,6 +101,11 @@ The GIMP 3.x (GObject Introspection) API differs significantly from GIMP 2.x:
 | Curves spline | `pdb.gimp_curves_spline(drawable, ch, n, pts)` | `drawable.curves_spline(channel, [pts])` (no num_points arg) |
 | Quit | `gimp.quit(0)` | Don't call — use `--quit` CLI flag instead |
 | Python version | Python 2 + `execfile()` | Python 3 + `exec(open(...).read())` |
+| GEGL filters | `pdb.plug_in_cartoon(...)` | `Gimp.DrawableFilter.new()` + `merge_filter()` (see below) |
+| Text layer | `pdb.gimp_text_fontname(...)` | `Gimp.TextLayer.new(image, text, font, size, unit)` |
+| Color balance | `pdb.gimp_color_balance(...)` | `drawable.color_balance(Gimp.TransferMode.SHADOWS, True, cr, mg, yb)` |
+| Brightness/contrast | `pdb.gimp_brightness_contrast(...)` | `drawable.brightness_contrast(brightness, contrast)` — floats -1.0 to 1.0 |
+| Posterize | `pdb.gimp_posterize(...)` | `drawable.posterize(levels)` |
 
 ### Imports for GIMP 3.x scripts
 
@@ -109,6 +114,60 @@ import gi
 gi.require_version("Gimp", "3.0")
 gi.require_version("Gegl", "0.4")
 from gi.repository import Gimp, Gegl, GLib, Gio
+```
+
+### GEGL Filter System (GIMP 3.x)
+
+In GIMP 3.x, old `plug-in-*` procedures are replaced by GEGL filters:
+
+```python
+# Create filter
+f = Gimp.DrawableFilter.new(drawable, "gegl:cartoon", "cartoon")
+
+# Configure via GObject properties
+config = f.get_config()
+config.set_property("mask-radius", 7.0)
+config.set_property("pct-black", 0.2)
+
+# Apply and merge (destructive)
+drawable.append_filter(f)
+drawable.merge_filter(f)
+```
+
+Available GEGL operations (tested on GIMP 3.0.8):
+- `gegl:cartoon` — mask-radius, pct-black
+- `gegl:oilify` — mask-radius, exponent, intensities, use-inten
+- `gegl:softglow` — glow-radius, brightness, sharpness
+- `gegl:edge` — algorithm, amount, border-behavior
+- `gegl:cubism` — tile-size, tile-saturation
+- `gegl:pixelize` — size-x, size-y
+- `gegl:photocopy` — mask-radius, sharpness, black, white
+- `gegl:vignette` — softness, radius, shape, gamma
+- `gegl:bloom` — threshold, softness, radius, strength
+- `gegl:newsprint` — color-model, pattern, period, angle
+- `gegl:emboss` — type, azimuth, elevation, depth
+- `gegl:mosaic` — tile-size, tile-height, and more
+- `gegl:neon` — (edge glow)
+- `gegl:gaussian-blur` — std-dev-x, std-dev-y
+- `gegl:unsharp-mask` — std-dev, scale, threshold
+- `gegl:difference-of-gaussians` — radius1, radius2
+- `gegl:waterpixels` — (superpixel segmentation)
+- `gegl:snn-mean` — (non-local means denoising)
+
+### Text Layers
+
+```python
+# Create text layer with default font (font-by-name doesn't work in batch mode)
+font = Gimp.context_get_font()
+text_layer = Gimp.TextLayer.new(image, "Hello", font, 72, Gimp.Unit.pixel())
+
+# Set properties
+text_layer.set_color(Gegl.Color.new("#ffffff"))
+image.insert_layer(text_layer, None, -1)
+text_layer.set_offsets(x, y)
+
+# Flatten to merge text with image
+image.flatten()
 ```
 
 ## Performance Notes
