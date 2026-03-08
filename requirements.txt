@@ -19,5 +19,8 @@ transformers>=4.36.0
 Pillow>=10.0
 sentencepiece>=0.1.99
 
+# Gemini API (prompt expansion)
+google-genai>=1.0.0
+
 # FLUX.1 image generation (MLX-native, Apple Silicon)
 mflux>=0.9.0

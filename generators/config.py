@@ -15,6 +15,10 @@ class GeneratorSettings(BaseSettings):
     flux_default_seed: Optional[int] = None
     flux_output_dir: str = "~/Desktop"
 
+    # Gemini API (for prompt expansion)
+    ai_api_key: str = ""
+    gemini_model: str = "gemini-2.0-flash"
+
     # General
     log_level: str = "INFO"
 

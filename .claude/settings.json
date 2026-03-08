@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(pip install torch)",
-      "Bash(pip --version)"
+      "Bash(pip --version)",
+      "Bash(python3 -c \"from generators import GeneratorType, create_generator, GenerationResult; print\\(''generators package OK''\\); from generators.config import GeneratorSettings; print\\(''config OK''\\); print\\(f''GeneratorTypes: {[t.value for t in GeneratorType]}''\\)\")",
+      "Bash(python3 -c \"from mflux import Flux1, Config; print\\(''mflux OK''\\)\")",
+      "Bash(python3 -c \"import mflux; print\\(dir\\(mflux\\)\\)\")",
+      "Bash(python3 -c \":*)"
     ]
   }
 }
