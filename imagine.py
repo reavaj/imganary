@@ -4,6 +4,7 @@
 import logging
 import os
 import sys
+import tempfile
 import warnings
 from datetime import datetime
 from pathlib import Path
@@ -118,7 +119,8 @@ def main():
         print(
             "Usage: ./imagine.py <vibe> "
             "[--model dev|schnell] [--steps N] [--seed N] "
-            "[--width N] [--height N] [--output path.png] [--raw] [--hd]"
+            "[--width N] [--height N] [--output path.png] [--raw] [--hd]\n"
+            "       [--image path] [--image2 path] [--strength 0.0-1.0]"
         )
         sys.exit(1)
 
@@ -141,6 +143,9 @@ def main():
     width = _flag("--width", default_size)
     height = _flag("--height", default_size)
     output = _flag("--output")
+    image = _flag("--image")
+    image2 = _flag("--image2")
+    strength = _flag("--strength", "0.5")
 
     # Resolve generator type
     type_map = {"dev": GeneratorType.FLUX_DEV, "schnell": GeneratorType.FLUX_SCHNELL}
@@ -168,6 +173,26 @@ def main():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output = str(Path(f"~/Desktop/flux_{timestamp}.png").expanduser())
 
+    # Blend two images if --image2 provided
+    ref_image = image
+    tmp_blend = None
+    if image and image2:
+        from PIL import Image as PILImage
+
+        img1 = PILImage.open(Path(image).expanduser()).convert("RGB")
+        img2 = PILImage.open(Path(image2).expanduser()).convert("RGB")
+        img2 = img2.resize(img1.size)
+        blended = PILImage.blend(img1, img2, alpha=0.5)
+        tmp_blend = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        blended.save(tmp_blend.name)
+        tmp_blend.close()
+        ref_image = tmp_blend.name
+        print(f"Blended: {image} + {image2}")
+
+    if ref_image:
+        print(f"Image:  {ref_image}")
+        print(f"Strength: {strength}")
+
     print(f"Model:  FLUX.1-{model}")
     print(f"Output: {output}")
     print()
@@ -180,7 +205,13 @@ def main():
         height=int(height),
         steps=int(steps) if steps else None,
         seed=int(seed) if seed else None,
+        image_path=ref_image,
+        image_strength=float(strength) if ref_image else None,
     )
+
+    # Clean up temp blend file
+    if tmp_blend:
+        Path(tmp_blend.name).unlink(missing_ok=True)
 
     if result.error:
         print(f"Error: {result.error}")

@@ -49,6 +49,8 @@ class FluxGenerator(ImageGenerator):
         height: int = 1024,
         steps: Optional[int] = None,
         seed: Optional[int] = None,
+        image_path: Optional[str | Path] = None,
+        image_strength: Optional[float] = None,
     ) -> GenerationResult:
         if not prompt or not prompt.strip():
             raise InvalidPromptError("Prompt cannot be empty")
@@ -65,13 +67,17 @@ class FluxGenerator(ImageGenerator):
 
         start = time.monotonic()
         try:
-            image = self._model.generate_image(
+            gen_kwargs = dict(
                 seed=seed,
                 prompt=prompt,
                 num_inference_steps=steps,
                 height=height,
                 width=width,
             )
+            if image_path is not None:
+                gen_kwargs["image_path"] = str(Path(image_path).expanduser())
+                gen_kwargs["image_strength"] = image_strength or 0.5
+            image = self._model.generate_image(**gen_kwargs)
             image.save(path=str(output_path))
         except Exception as exc:
             elapsed_ms = (time.monotonic() - start) * 1000
