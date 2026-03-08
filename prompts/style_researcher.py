@@ -193,7 +193,17 @@ def research_and_create_style(
 
     callback(f"Downloaded: {len(images)} reference images")
 
-    # Step 3: Analyze with LLaVA
+    # Step 3: Ask user whether to run LLaVA (slow) or use Gemini only (fast)
+    try:
+        answer = input("Analyze with LLaVA for richer style? (y/N) ").strip().lower()
+    except EOFError:
+        answer = "n"
+    if answer != "y":
+        # Clean up downloaded images
+        for img_path in images:
+            img_path.unlink(missing_ok=True)
+        return _create_style_from_gemini(concept, category, settings, callback)
+
     callback("Analyzing with LLaVA...")
     model_settings = ModelSettings()
     analyses = []
