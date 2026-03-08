@@ -1,3 +1,4 @@
+import random
 import time
 from pathlib import Path
 from typing import Optional
@@ -57,13 +58,15 @@ class FluxGenerator(ImageGenerator):
 
         steps = steps or self._default_steps()
         seed = seed if seed is not None else self._settings.flux_default_seed
+        if seed is None:
+            seed = random.randint(0, 2**32 - 1)
 
         self._load_model()
 
         start = time.monotonic()
         try:
             image = self._model.generate_image(
-                seed=seed or 0,
+                seed=seed,
                 prompt=prompt,
                 num_inference_steps=steps,
                 height=height,

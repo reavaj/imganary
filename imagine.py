@@ -118,7 +118,7 @@ def main():
         print(
             "Usage: ./imagine.py <vibe> "
             "[--model dev|schnell] [--steps N] [--seed N] "
-            "[--width N] [--height N] [--output path.png] [--raw]"
+            "[--width N] [--height N] [--output path.png] [--raw] [--hd]"
         )
         sys.exit(1)
 
@@ -133,11 +133,13 @@ def main():
         return default
 
     raw = "--raw" in sys.argv
+    hd = "--hd" in sys.argv
     model = _flag("--model", "schnell")
     steps = _flag("--steps")
     seed = _flag("--seed")
-    width = _flag("--width", "1024")
-    height = _flag("--height", "1024")
+    default_size = "1024" if hd else "512"
+    width = _flag("--width", default_size)
+    height = _flag("--height", default_size)
     output = _flag("--output")
 
     # Resolve generator type
@@ -185,6 +187,8 @@ def main():
         sys.exit(1)
 
     print(f"Generated {result.width}x{result.height} in {result.processing_time_ms:.0f}ms")
+    if result.seed is not None:
+        print(f"Seed:   {result.seed}")
     print(f"Saved to: {result.output_path}")
 
 
