@@ -6,6 +6,7 @@ from .analyze_image import handle_analyze_image
 from .execute_gimp import handle_execute_gimp_script
 from .generate_script import handle_generate_gimp_script
 from .image_utils import get_image_info
+from .generate_image import handle_generate_image
 from .library import (
     handle_load_library_script,
     handle_save_to_library,
@@ -228,6 +229,53 @@ TOOL_DEFINITIONS = [
             "required": ["script_name", "input_path"],
         },
     },
+    {
+        "name": "generate_image",
+        "description": (
+            "Generate an image from a text prompt using FLUX.1. "
+            "Use 'schnell' for fast generation (~10-15s, 4 steps) or "
+            "'dev' for higher quality (~45-90s, 25 steps)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "description": "Text description of the image to generate.",
+                },
+                "model": {
+                    "type": "string",
+                    "enum": ["dev", "schnell"],
+                    "description": "FLUX.1 variant. Default: schnell.",
+                },
+                "width": {
+                    "type": "integer",
+                    "description": "Image width in pixels. Default: 1024.",
+                },
+                "height": {
+                    "type": "integer",
+                    "description": "Image height in pixels. Default: 1024.",
+                },
+                "steps": {
+                    "type": "integer",
+                    "description": (
+                        "Inference steps. Default: 4 for schnell, 25 for dev."
+                    ),
+                },
+                "seed": {
+                    "type": "integer",
+                    "description": "Random seed for reproducibility.",
+                },
+                "output_path": {
+                    "type": "string",
+                    "description": (
+                        "Output file path. Auto-generated on Desktop if omitted."
+                    ),
+                },
+            },
+            "required": ["prompt"],
+        },
+    },
 ]
 
 
@@ -247,6 +295,7 @@ class ToolRegistry:
             "save_to_library": self._handle_save,
             "search_library": self._handle_search,
             "load_library_script": self._handle_load,
+            "generate_image": self._handle_generate_image,
         }
         handler = handlers.get(tool_name)
         if not handler:
@@ -302,4 +351,15 @@ class ToolRegistry:
             output_path=inp.get("output_path"),
             parameters=inp.get("parameters"),
             config=self._config,
+        )
+
+    def _handle_generate_image(self, inp: dict) -> dict:
+        return handle_generate_image(
+            prompt=inp["prompt"],
+            model=inp.get("model", "schnell"),
+            width=inp.get("width", 1024),
+            height=inp.get("height", 1024),
+            steps=inp.get("steps"),
+            seed=inp.get("seed"),
+            output_path=inp.get("output_path"),
         )
