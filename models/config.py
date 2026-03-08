@@ -33,4 +33,5 @@ class ModelSettings(BaseSettings):
         "env_prefix": "IMGANARY_",
         "env_file": ".env",
         "env_file_encoding": "utf-8",
+        "extra": "ignore",
     }
