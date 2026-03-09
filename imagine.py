@@ -90,9 +90,18 @@ def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
     # Classify vibe → get relevant styles (auto-research if needed)
     matched_styles = classify_and_resolve(vibe, settings)
 
+    # Auto-inject approachable figure style when no figure style is explicitly matched
+    has_figure_style = any(s.startswith("figure/") for s in matched_styles)
+    if not has_figure_style:
+        matched_styles.append("figure/approachable")
+
+    # Separate figure styles from other styles for different injection framing
+    figure_styles = [s for s in matched_styles if s.startswith("figure/")]
+    other_styles = [s for s in matched_styles if not s.startswith("figure/")]
+
     system_prompt = EXPAND_PROMPT_PATH.read_text()
-    if matched_styles:
-        style_content = load_styles(matched_styles)
+    if other_styles:
+        style_content = load_styles(other_styles)
         system_prompt += (
             "\n\n---\n\n"
             "# Matched Style References\n\n"
@@ -100,6 +109,17 @@ def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
             "Draw on their Visual DNA, textures, lighting, and FLUX keywords "
             "to build your expanded prompt. Blend them if appropriate.\n\n"
             f"{style_content}"
+        )
+    if figure_styles:
+        figure_content = load_styles(figure_styles)
+        system_prompt += (
+            "\n\n---\n\n"
+            "# MANDATORY Figure Rendering Style\n\n"
+            "When describing human subjects, you MUST follow this figure style. "
+            "This is NOT optional and overrides any tendency toward idealized beauty. "
+            "Apply the key characteristics and FLUX keywords from this definition "
+            "to every human subject in the expanded prompt.\n\n"
+            f"{figure_content}"
         )
 
     client = genai.Client(api_key=api_key)
@@ -157,8 +177,12 @@ def main():
     settings = GeneratorSettings()
 
     # Expand or pass through
-    if raw:
+    # Detailed prompts (3+ sentences) are used verbatim — no Gemini rewrite
+    sentence_count = len([s for s in vibe.replace("...", "…").split(".") if s.strip()])
+    if raw or sentence_count > 2:
         prompt = vibe
+        if not raw:
+            print("Prompt is already detailed — using verbatim.")
         print(f"Prompt: {prompt}")
     else:
         print(f"Vibe:   {vibe}")

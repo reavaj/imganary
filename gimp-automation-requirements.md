@@ -1,76 +1,79 @@
-Project Overview
-Build a structured, extensible automation framework integrating Claude Code with GIMP to enable AI-driven image editing workflows. The system generates reusable scripts, grows a persistent library, and is version-controlled on GitHub.
+# Imganary — Project Requirements
 
-Core Goals
+## Overview
 
-Automate GIMP image manipulation using Claude Code skills
-Generate and save reusable GIMP Python-Fu/Script-Fu scripts to a growing library
-Integrate local image recognition models so Claude understands image context before editing
-Maintain everything in a well-organized GitHub repo for long-term storage and potential community sharing
+AI-driven image generation and GIMP automation framework. Three core pipelines:
 
+1. **Generate** — Text prompt → FLUX.1 image (Schnell for speed, Dev for quality)
+2. **Analyze** — Image → structured scene understanding (LLaVA, YOLO, CLIP)
+3. **Edit** — Image → GIMP batch automation via Claude Code skills
 
-GitHub Repository Structure
-gimp-claude-automation/
-├── skills/               # Claude Code skill definitions
-│   ├── gimp-core/
-│   ├── image-analysis/
-│   └── workflow/
-├── scripts/              # Generated GIMP Python-Fu scripts
-│   ├── color/
-│   ├── transform/
-│   ├── filters/
-│   └── compositing/
-├── models/               # Local vision/recognition models + README
-├── docs/
-│   ├── skill-index.md    # Maps skills to the scripts they generate
-│   └── setup.md
-└── README.md
+## Generation Pipeline
 
-Skills Framework
-Categories to build:
+### FLUX.1 Models
 
-GIMP Core — CLI and Python-Fu wrappers for common ops (resize, crop, color, filters, format conversion)
-Batch Processing — Automate repetitive tasks across image folders
-Script Generation — Natural language → Python-Fu script, auto-saved to library
-Image Analysis — Invoke local vision models, return scene context
-Pipeline Orchestration — Chain analysis → context → GIMP transformation
+| Model | Steps | Speed | Quality | Use Case |
+|-------|-------|-------|---------|----------|
+| Schnell | 4 | ~10s | Good | Rapid iteration, concept exploration |
+| Dev | 25 | ~45-90s | High | Final renders, production quality |
 
-Design principles: Each skill self-contained, script-generating skills auto-save to scripts/, skills composable into larger workflows.
+- Runtime: mflux (MLX, Apple Silicon native)
+- Quantization: 8-bit
+- Output: PNG to `~/Desktop/` by default
+- Models cached at `~/.cache/huggingface/hub/`
 
-Local Image Recognition Integration
-Purpose: Let Claude understand image content before generating edits (e.g., "sharpen the background behind the subject").
-Suggested models:
+### Prompt Handling
 
-LLaVA — General purpose local vision-language model (run via Ollama)
-YOLO — Object detection
-CLIP — Semantic image understanding
+Three modes via `imagine.py`:
 
-Flow: image path → local model → scene description → Claude generates targeted GIMP script → script saved to library
+- **Vibe mode** (default): 1-2 sentence prompts are classified against the style library, then expanded by Gemini into FLUX-optimized language
+- **Detailed mode** (auto): 3+ sentence prompts are used verbatim — no Gemini rewrite
+- **Raw mode** (`--raw`): Bypasses all expansion
 
-Script Library Management
+### Style Library
 
-Scripts saved to scripts/ with descriptive filenames, organized by category
-docs/skill-index.md documents what each script does and which skill generated it
-Commit regularly to GitHub to build a permanent, growing library
+124 style definitions across 16 categories under `prompts/styles/`:
 
+**Style categories** (6): photography, illustration, fine-art, design, digital, architecture
+**Adjective categories** (10): lighting, color, texture, mood, composition, rendering, form, scale, optical, time-motion
 
-Git Workflow
-bashgit add skills/ scripts/ docs/
-git commit -m "Add: [description of new skill or script]"
-git push origin main
-Use descriptive commit messages. Tag milestones like v0.1-core-skills.
+Each style file contains:
+- Visual DNA (what it does, key characteristics, reference points, pairings)
+- FLUX keywords for prompt injection
 
-Environment Requirements
+Auto-research pipeline (`style_researcher.py`): when a vibe doesn't match existing styles, the system searches for references, optionally analyzes them with LLaVA, and creates a new style definition via Gemini.
 
-Claude Code (CLI)
-GIMP with Python-Fu support enabled
-Python 3.x
-Ollama (for running LLaVA locally)
-Git
+## Analysis Pipeline
 
+Three local vision models, all implementing `ImageAnalyzer` ABC:
 
-Future Extensions
+- **LLaVA** — Scene description via Ollama REST API
+- **YOLO** — Object detection (ultralytics)
+- **CLIP** — Semantic image-text similarity (transformers)
 
-Web UI for browsing and running saved scripts
-Automated tagging of scripts by image type or use case
-Community sharing via the public repo
+CLI: `./analyze.py <image> [--model llava|yolo|clip]`
+
+## Editing Pipeline
+
+Claude Code skills automate GIMP 3.x in headless batch mode:
+
+### Skills (11)
+
+**Color**: brightness-contrast, color-balance, color-harmonize, desaturate, duotone, posterize
+**Effects**: cartoon, vignette, pixelize, line-drawing
+**Text**: text-overlay
+
+### Architecture
+
+- Template pattern: read Python-Fu script → inject `__PLACEHOLDER__` config → write to `/tmp/` → run GIMP batch
+- macOS batch mode: `gimp-console` + filtered plugin directory + `--quit` flag
+- See `docs/gimp-batch-mode.md` for full macOS setup
+
+## Environment
+
+- Python 3.12 (Apple Silicon ARM native)
+- GIMP 3.0.8 (Homebrew cask)
+- mflux ≥0.9.0 (MLX, Apple Silicon optimized)
+- Ollama (LLaVA)
+- Google Gemini API (prompt expansion)
+- pydantic-settings for all configuration

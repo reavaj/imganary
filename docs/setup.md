@@ -2,23 +2,9 @@
 
 ## Prerequisites
 
-### 1. GIMP with Python-Fu
+### 1. Python 3.12 (ARM)
 
-Install GIMP and ensure Python-Fu console is available under **Filters > Python-Fu > Console**.
-
-- **macOS**: `brew install --cask gimp`
-- **Linux**: `sudo apt install gimp`
-- **Windows**: Download from [gimp.org](https://www.gimp.org/downloads/)
-
-Verify Python-Fu works:
-
-```bash
-gimp -i -b '(gimp-version)' -b '(gimp-quit 0)'
-```
-
-### 2. Python 3.12 (ARM)
-
-Python 3.12 via ARM Homebrew is recommended on Apple Silicon for native PyTorch support.
+Python 3.12 via ARM Homebrew is required on Apple Silicon for native PyTorch and MLX support.
 
 ```bash
 # Install ARM Homebrew (if not already at /opt/homebrew)
@@ -29,38 +15,87 @@ Python 3.12 via ARM Homebrew is recommended on Apple Silicon for native PyTorch 
 /opt/homebrew/bin/python3.12 --version
 ```
 
-### 3. Ollama (Local Vision Models)
+### 2. Virtual Environment & Dependencies
 
 ```bash
-# macOS
-brew install ollama
-
-# Linux
-curl -fsSL https://ollama.com/install.sh | sh
+cd imganary
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Pull the LLaVA model:
+### 3. Environment Variables
 
 ```bash
+cp .env.example .env
+```
+
+Edit `.env` and add:
+- `IMGANARY_AI_API_KEY` — Google Gemini API key (for prompt expansion)
+- Other settings are optional (see `generators/config.py` and `models/config.py`)
+
+### 4. GIMP 3.x with Python-Fu
+
+```bash
+brew install --cask gimp
+```
+
+GIMP batch mode on macOS requires special setup. See [gimp-batch-mode.md](gimp-batch-mode.md) for the full guide (filtered plugin directory, batch-gimprc, gimp-console usage).
+
+### 5. Ollama (Local Vision Models)
+
+```bash
+brew install ollama
 ollama pull llava
 ```
 
-### 4. Claude Code CLI
+LLaVA is used for scene description and image analysis. YOLO and CLIP models auto-download on first use via Python packages.
 
-Follow the [Claude Code installation guide](https://docs.anthropic.com/en/docs/claude-code) to install the CLI.
+### 6. HuggingFace Authentication (FLUX Models)
 
-### 5. Git
+FLUX.1 models are gated — you must accept the terms on HuggingFace before downloading:
+
+1. Create an account at [huggingface.co](https://huggingface.co)
+2. Accept terms for [FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell) and/or [FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev)
+3. Log in locally:
 
 ```bash
-git --version
+source .venv/bin/activate
+huggingface-cli login
 ```
+
+Models cache to `~/.cache/huggingface/hub/` (~12GB each).
+
+### 7. Claude Code CLI
+
+Follow the [Claude Code installation guide](https://docs.anthropic.com/en/docs/claude-code) to install the CLI. Claude Code skills provide GIMP automation (color grading, filters, text overlay, etc.).
 
 ## Verify Setup
 
 ```bash
-# Check all dependencies
-gimp --version
-python3 --version
+source .venv/bin/activate
+
+# Core tools
+python3 --version          # 3.12.x
+gimp --version             # 3.0.x
 ollama --version
-git --version
+
+# FLUX generation
+./generate.py "test prompt" --model schnell
+
+# Vision analysis
+./analyze.py ~/Desktop/test.jpg --model llava
+
+# Prompt expansion (requires IMGANARY_AI_API_KEY)
+./imagine.py "test vibe"
 ```
+
+## Model Summary
+
+| Model | Size | Download | Purpose |
+|-------|------|----------|---------|
+| FLUX.1-schnell | ~12GB | HuggingFace (gated) | Fast image generation (4 steps) |
+| FLUX.1-dev | ~12GB | HuggingFace (gated) | High-quality generation (25 steps) |
+| LLaVA | ~4GB | `ollama pull llava` | Scene description |
+| YOLOv8n | ~6MB | Auto on first use | Object detection |
+| CLIP | ~600MB | Auto on first use | Image-text similarity |

@@ -1,4 +1,4 @@
-# Local Vision Models
+# Vision Models
 
 Python package providing unified wrappers for local vision models. All analyzers implement the `ImageAnalyzer` ABC and return structured `AnalysisResult` objects.
 
@@ -6,7 +6,7 @@ Python package providing unified wrappers for local vision models. All analyzers
 
 ### LLaVA (via Ollama)
 
-General-purpose vision-language model. Returns free-text scene descriptions.
+General-purpose vision-language model. Returns free-text scene descriptions via Ollama REST API (httpx, `stream: False`). First load takes ~160s, subsequent runs ~5s.
 
 ```bash
 ollama pull llava
@@ -20,23 +20,32 @@ Object detection. Returns detected objects with bounding boxes and confidence sc
 
 Semantic image understanding. Zero-shot classification against candidate labels. Model weights (~600MB) download on first use.
 
-## Usage
+## CLI Usage
+
+```bash
+# Analyze with a specific model
+./analyze.py ~/Desktop/photo.jpg --model llava
+./analyze.py ~/Desktop/photo.jpg --model yolo
+./analyze.py ~/Desktop/photo.jpg --model clip
+```
+
+## Python API
 
 ```python
 from models import create_analyzer, AnalyzerType
 
-# Single analyzer
+# LLaVA — scene description
 analyzer = create_analyzer(AnalyzerType.LLAVA)
 result = analyzer.analyze("photo.jpg")
 print(result.scene_description.description)
 
-# YOLO
+# YOLO — object detection
 yolo = create_analyzer(AnalyzerType.YOLO)
 result = yolo.analyze("photo.jpg")
 for obj in result.detected_objects:
     print(f"{obj.label}: {obj.confidence:.2f}")
 
-# CLIP
+# CLIP — semantic matching
 clip = create_analyzer(AnalyzerType.CLIP)
 result = clip.analyze("photo.jpg")
 for match in result.semantic_matches:
@@ -51,13 +60,7 @@ for name, analyzer in analyzers.items():
 
 ## Configuration
 
-All settings are loaded from environment variables (prefix `IMGANARY_`) or a `.env` file. See `.env.example` at the project root.
-
-## Workflow
-
-```
-image path → local model → scene description → Claude generates GIMP script → script saved to library
-```
+All settings are loaded from environment variables (prefix `IMGANARY_`) or a `.env` file. See `generators/config.py` and `models/config.py`.
 
 ## Module Structure
 
