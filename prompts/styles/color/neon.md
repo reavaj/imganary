@@ -14,4 +14,4 @@ Electric, fluorescent, eye-searing synthetic color — Refn's hot pink, cyberpun
 - **Pairs well with:** harsh, graphic, hallucinatory, underexposed
 
 ## FLUX keywords
-neon colors, neon glow, electric colors, fluorescent, glowing neon, hot pink, electric blue, neon signs, bright neon against dark
+neon colors, practical neon tube light, real neon signage, Tokyo Shinjuku at night, hot pink neon, electric blue neon, neon reflected on wet pavement, dark background, fluorescent glow

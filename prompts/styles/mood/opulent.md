@@ -14,4 +14,4 @@ Excess, luxury, visual richness overwhelming the eye — Baz Luhrmann's parties,
 - **Pairs well with:** saturated, jewel-toned, ornate, burnished
 
 ## FLUX keywords
-opulent, luxurious, lavish, rich, decadent, gold, sumptuous, ornate luxury, wealthy, excess
+opulent, gold leaf, silk damask, cut crystal chandelier, velvet upholstery, marble columns, Versailles interior, gilded ornament, heavy brocade, overflowing abundance

@@ -14,4 +14,4 @@ Dreamlike, otherworldly, impossibly delicate beauty — Pre-Raphaelites, Tarkovs
 - **Pairs well with:** diffused, overexposed, soft-focus, translucent
 
 ## FLUX keywords
-ethereal, dreamlike, otherworldly, heavenly, soft glow, floating, angelic, mystical light, delicate, gossamer
+ethereal, dreamlike, otherworldly, pre-dawn mist, fog machine haze, overexposed Polaroid quality, Tarkovsky soft focus, gossamer fabric, pale luminous, weightless, Pre-Raphaelite beauty

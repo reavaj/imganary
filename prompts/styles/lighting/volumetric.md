@@ -14,4 +14,4 @@ Visible shafts of light cutting through atmosphere — god rays in fog, dust-fil
 - **Pairs well with:** ominous, ethereal, backlit, deep-focus
 
 ## FLUX keywords
-volumetric lighting, god rays, light shafts, fog, atmospheric lighting, beams of light, haze, smoke and light, dust particles in light
+god rays, visible light shafts, light beams through fog, atmospheric haze, dust particles catching light, smoke and light, Ridley Scott haze, cathedral light through stained glass

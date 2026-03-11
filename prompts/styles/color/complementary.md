@@ -14,4 +14,4 @@ Opposing colors on the color wheel creating maximum chromatic tension — the or
 - **Pairs well with:** saturated, graphic, harsh, neon
 
 ## FLUX keywords
-complementary colors, orange and teal, color contrast, opposing colors, warm and cool contrast, vibrant color pairing, color tension
+complementary colors, orange and teal, color contrast, opposing colors, warm and cool contrast, high-chroma color pairing, color tension, Vermeer blue and yellow

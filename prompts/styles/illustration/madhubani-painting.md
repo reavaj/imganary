@@ -11,4 +11,4 @@ Madhubani painting, also known as Mithila art, is a traditional Indian folk art 
 - **Rendering:** Stylized and symbolic representation of figures and objects. Bold outlines, double lines, and decorative patterns. Lack of perspective and realism.
 
 ## FLUX keywords
-Madhubani, Mithila art, Indian folk art, line art, geometric patterns, vibrant colors, mythological, traditional, intricate, decorative, flat illustration, bold outlines, double lines, handmade paper, natural pigments, fertility, celebration, folk art motifs
+Madhubani, Mithila art, Indian folk art, line art, geometric patterns, bold primary colors, mythological, traditional, intricate, decorative, flat illustration, bold outlines, double lines, handmade paper, natural pigments, folk art motifs

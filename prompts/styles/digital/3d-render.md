@@ -1,6 +1,6 @@
 # 3D Render / CGI
 
-Clean, modern 3D rendering — the aesthetic of product visualization, motion graphics, and contemporary digital art. Octane, Blender, Cinema 4D look.
+Clean, modern 3D rendering — the aesthetic of product visualization, motion graphics, and contemporary digital art. Blender Cycles, Cinema 4D, path-traced look.
 
 ## Visual DNA
 - **Lighting:** Three-point studio HDRI setups. Soft area lights with crisp shadows. Global illumination with subtle color bounce. Caustics through glass and liquid.
@@ -11,4 +11,4 @@ Clean, modern 3D rendering — the aesthetic of product visualization, motion gr
 - **Rendering:** Path-traced with subtle depth of field. Soft ambient occlusion in crevices. Physically accurate reflections and refractions. No noise, no grain — pristine.
 
 ## FLUX keywords
-3D render, CGI, Octane render, Blender, Cinema 4D, studio lighting, isometric, product visualization, glossy, matte, clay render
+3D render, CGI, path-traced, Blender Cycles, Cinema 4D, studio lighting, isometric, product visualization, glossy, matte, clay render, soft ambient occlusion

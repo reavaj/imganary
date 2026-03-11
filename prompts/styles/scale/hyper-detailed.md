@@ -14,4 +14,4 @@ Obsessive level of detail far beyond normal observation — Bosch's hellscapes, 
 - **Pairs well with:** photorealistic, intricate, deep-focus, cluttered
 
 ## FLUX keywords
-hyper-detailed, ultra-detailed, extremely detailed, obsessive detail, every detail visible, maximum detail, 8K detail, highly detailed, microscopic precision
+obsessively rendered, every surface resolved, forensic detail, pathological precision, every detail visible, Bosch-level density, microscopic precision, maximum resolution rendering

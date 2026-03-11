@@ -14,4 +14,4 @@ Deep, rich, saturated gemstone colors — stained glass, Klimt's gold and emeral
 - **Pairs well with:** opulent, ornate, saturated, burnished
 
 ## FLUX keywords
-jewel tones, emerald green, ruby red, sapphire blue, rich deep colors, gemstone colors, stained glass colors, luxurious colors, deep saturated
+jewel tones, emerald green, ruby red, sapphire blue, deep gemstone colors, stained glass luminosity, amethyst purple, heavy saturated hues at dark values, gold accents

@@ -14,4 +14,4 @@ Deliberate departure from realism toward a designed aesthetic — Ghibli's world
 - **Pairs well with:** cel-shaded, graphic, saturated, organic
 
 ## FLUX keywords
-stylized, artistic, designed, non-realistic, illustrated, animated style, artistic interpretation, exaggerated, distinctive style
+stylized, Studio Ghibli aesthetic, Pixar appeal, simplified forms, exaggerated proportions, Art Deco illustration, consistent design language, Spider-Verse graphic look, bold outlines, designed world

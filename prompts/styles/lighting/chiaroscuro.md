@@ -14,4 +14,4 @@ Extreme contrast between light and dark, with isolated pools of illumination eme
 - **Pairs well with:** candlelit, intimate, painterly, underexposed
 
 ## FLUX keywords
-chiaroscuro, dramatic lighting, deep shadows, Caravaggio lighting, high contrast light and shadow, dark background, single light source
+chiaroscuro, Caravaggio single-source light, deep shadows, high contrast light and shadow, dark background, single light source, sculpted by shadow, faces half-lit

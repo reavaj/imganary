@@ -164,12 +164,12 @@ Optional GIMP-based post-processing that reduces AI oversaturation and adds film
 
 ## Style Library
 
-124 style definitions across 16 categories, used by the prompt expansion pipeline:
+132 style definitions across 16 categories, used by the prompt expansion pipeline:
 
 | Category | Count | Examples |
 |----------|-------|---------|
 | **Styles** | | |
-| photography/ | 4 | film-noir, editorial-fashion, street-documentary |
+| photography/ | 12 | film-noir, editorial-fashion, street-documentary, food, rain-wet, golden-hour, portrait, macro, interior-design, infrared, signage-typography |
 | illustration/ | 5 | anime-cel, ukiyo-e, vintage-poster |
 | fine-art/ | 3 | oil-painting, watercolor, pop-art |
 | design/ | 4 | psychedelic, steampunk, swiss-modernist |
