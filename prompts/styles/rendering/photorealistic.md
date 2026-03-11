@@ -15,4 +15,4 @@ Indistinguishable from an actual photograph — not a render, not CGI, but somet
 - **Pairs well with:** muted, diffused, grainy, intimate, natural lighting
 
 ## FLUX keywords
-real photograph not a render, not AI generated, no digital artifacts, photograph, shot on iPhone 15 Pro, 35mm focal length, deep focus, everything in focus, natural ambient lighting, Kodak Portra 400 tonality, muted natural color, no color grading, natural dynamic range, soft highlight rolloff, subtle luminance noise in shadows, slight lens vignetting, minor chromatic aberration, slightly warm white balance, subsurface skin scattering, casual snapshot not a studio photo
+real photograph not a render, not AI generated, no digital artifacts, photograph, shot on 35mm film, Kodak Portra 400, 35mm focal length, deep focus, everything in focus, natural ambient lighting, muted natural color, no color grading, natural dynamic range, soft highlight rolloff, subtle luminance noise in shadows, slight lens vignetting, minor chromatic aberration, slightly warm white balance, subsurface skin scattering, candid snapshot not a studio photo

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """GIMP-based photo grading pipeline — multi-stage film emulation for photorealism."""
 
 import os
@@ -196,7 +197,7 @@ def grade_image(
         ]
         env = {**os.environ, "LSBackgroundOnly": "1"}
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120, env=env
+            cmd, capture_output=True, text=True, timeout=180, env=env
         )
         if result.returncode != 0:
             raise RuntimeError(
@@ -206,3 +207,35 @@ def grade_image(
         Path(script_path).unlink(missing_ok=True)
 
     return output_path
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        print(
+            "Usage: ./grade.py <image> [--preset minimal|natural|film] [--output path.png]"
+        )
+        sys.exit(1)
+
+    image_path = sys.argv[1]
+
+    def _flag(name, default=None):
+        if name in sys.argv:
+            idx = sys.argv.index(name)
+            if idx + 1 < len(sys.argv):
+                return sys.argv[idx + 1]
+        return default
+
+    preset = _flag("--preset", "natural")
+    output = _flag("--output")
+
+    print(f"Input:  {image_path}")
+    print(f"Preset: {preset}")
+    if output:
+        print(f"Output: {output}")
+    else:
+        print("Output: overwriting input")
+
+    result = grade_image(image_path, output_path=output, preset=preset)
+    print(f"Graded: {result}")
