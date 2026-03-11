@@ -49,7 +49,7 @@ Choose lighting appropriate to the scene's setting and time of day.
 Prompt Ordering (FLUX is attention-weighted — earlier tokens carry more weight):
 Structure expanded prompts in this order, front to back:
 1. Anti-AI anchors ("real photograph", "not a render", "authentic documentary photo")
-2. Camera/lens specification ("shot on iPhone 15 Pro", "35mm focal length")
+2. Camera/lens specification ("shot on 35mm film", "Kodak Portra 400", "50mm lens")
 3. Subject description (the person, object, or scene)
 4. Environment and setting
 5. Lighting setup (concrete, specific)

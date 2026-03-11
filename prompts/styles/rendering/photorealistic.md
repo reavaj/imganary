@@ -5,7 +5,7 @@ Indistinguishable from an actual photograph — not a render, not CGI, but somet
 ## Visual DNA
 - **What it does:** Mimics the full optical pipeline of real photography — lens behavior, sensor response, chemical film characteristics — so the result reads as a genuine captured moment rather than a generated image.
 - **Key characteristics:**
-  - **Optical realism:** Deep focus with most of the scene sharp — like a phone camera or compact point-and-shoot, not a portrait lens. Only very distant backgrounds should soften slightly. Minor chromatic aberration on high-contrast boundaries, subtle barrel distortion at edges
+  - **Optical realism:** Deep focus with most of the scene sharp — like a 35mm compact or point-and-shoot film camera, not a portrait lens. Only very distant backgrounds should soften slightly. Minor chromatic aberration on high-contrast boundaries, subtle barrel distortion at edges
   - **Sensor/film response:** Natural dynamic range with soft highlight rolloff, not HDR-pushed. Shadow detail present but not artificially lifted. Subtle luminance noise in low-light areas
   - **Color truth:** Muted, natural color — no oversaturated vibrancy boost. Skin tones lean warm-neutral, not orange or porcelain. White balance slightly off (real cameras drift slightly warm or cool)
   - **Imperfection as authenticity:** Micro-motion blur on extremities, not every eyelash razor-sharp. Slight vignetting from lens optics. Almost everything in focus — this is a snapshot, not a studio session
