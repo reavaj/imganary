@@ -3,6 +3,7 @@
 
 import logging
 import os
+import random
 import sys
 import tempfile
 import warnings
@@ -95,6 +96,11 @@ def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
     if not has_figure_style:
         matched_styles.append("figure/approachable")
 
+    # Auto-inject photorealistic rendering when no rendering style is explicitly matched
+    has_rendering_style = any(s.startswith("rendering/") for s in matched_styles)
+    if not has_rendering_style:
+        matched_styles.append("rendering/photorealistic")
+
     # Separate figure styles from other styles for different injection framing
     figure_styles = [s for s in matched_styles if s.startswith("figure/")]
     other_styles = [s for s in matched_styles if not s.startswith("figure/")]
@@ -140,7 +146,12 @@ def main():
             "Usage: ./imagine.py <vibe> "
             "[--model dev|schnell] [--steps N] [--seed N] "
             "[--width N] [--height N] [--output path.png] [--raw] [--hd]\n"
-            "       [--image path] [--image2 path] [--strength 0.0-1.0]"
+            "       [--image path] [--image2 path] [--strength 0.0-1.0]\n"
+            "       [--guidance N]  (CFG scale, default 3.5 — lower = less saturated, dev only)\n"
+            "       [--lora path.safetensors]  (LoRA weights, comma-separated for multiple)\n"
+            "       [--grade minimal|natural|film]  (GIMP post-grading preset)\n"
+            "       [--natural [AMOUNT]]  (shorthand for --grade natural)\n"
+            "       [--portrait]  (tall aspect ratio for full-body shots: 768x1152)"
         )
         sys.exit(1)
 
@@ -156,12 +167,32 @@ def main():
 
     raw = "--raw" in sys.argv
     hd = "--hd" in sys.argv
+    portrait = "--portrait" in sys.argv
+    natural = "--natural" in sys.argv
+    if natural:
+        # --natural can be bare (default 30) or --natural 50
+        raw_amount = _flag("--natural")
+        # If next arg is another flag or missing, use default
+        if raw_amount is None or raw_amount.startswith("--"):
+            natural_amount = 30.0
+        else:
+            natural_amount = float(raw_amount)
+    else:
+        natural_amount = None
+    guidance_str = _flag("--guidance")
+    lora_str = _flag("--lora")
+    grade_preset = _flag("--grade")
     model = _flag("--model", "schnell")
     steps = _flag("--steps")
     seed = _flag("--seed")
-    default_size = "1024" if hd else "512"
-    width = _flag("--width", default_size)
-    height = _flag("--height", default_size)
+    if portrait:
+        default_width, default_height = "768", "1152"
+    elif hd:
+        default_width, default_height = "1024", "1024"
+    else:
+        default_width, default_height = "512", "512"
+    width = _flag("--width", default_width)
+    height = _flag("--height", default_height)
     output = _flag("--output")
     image = _flag("--image")
     image2 = _flag("--image2")
@@ -176,6 +207,12 @@ def main():
 
     settings = GeneratorSettings()
 
+    # Apply CLI overrides to settings
+    if lora_str:
+        settings.flux_lora_paths = [p.strip() for p in lora_str.split(",")]
+    if guidance_str:
+        settings.flux_guidance = float(guidance_str)
+
     # Expand or pass through
     # Detailed prompts (3+ sentences) are used verbatim — no Gemini rewrite
     sentence_count = len([s for s in vibe.replace("...", "…").split(".") if s.strip()])
@@ -188,14 +225,21 @@ def main():
         print(f"Vibe:   {vibe}")
         print("Expanding...")
         prompt = expand_prompt(vibe, settings)
-        print(f"Prompt: {prompt}")
+
+    print(f"Prompt: {prompt}")
 
     print()
+
+    # Resolve seed early so it can be included in the filename
+    if seed is None:
+        seed = random.randint(0, 2**32 - 1)
+    else:
+        seed = int(seed)
 
     # Default output path
     if not output:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output = str(Path(f"~/Desktop/flux_{timestamp}.png").expanduser())
+        output = str(Path(f"~/Desktop/flux_{timestamp}_s{seed}.png").expanduser())
 
     # Blend two images if --image2 provided
     ref_image = image
@@ -218,6 +262,14 @@ def main():
         print(f"Strength: {strength}")
 
     print(f"Model:  FLUX.1-{model}")
+    if model == "dev":
+        print(f"CFG:    {settings.flux_guidance}")
+    if settings.flux_lora_paths:
+        print(f"LoRA:   {', '.join(settings.flux_lora_paths)}")
+    if grade_preset:
+        print(f"Grade:  --grade {grade_preset}")
+    elif natural:
+        print(f"Grade:  --natural {natural_amount}%")
     print(f"Output: {output}")
     print()
 
@@ -228,9 +280,10 @@ def main():
         width=int(width),
         height=int(height),
         steps=int(steps) if steps else None,
-        seed=int(seed) if seed else None,
+        seed=seed,
         image_path=ref_image,
         image_strength=float(strength) if ref_image else None,
+        guidance=settings.flux_guidance,
     )
 
     # Clean up temp blend file
@@ -244,6 +297,29 @@ def main():
     print(f"Generated {result.width}x{result.height} in {result.processing_time_ms:.0f}ms")
     if result.seed is not None:
         print(f"Seed:   {result.seed}")
+
+    # Post-processing: GIMP photo grading
+    # --grade <preset> takes priority; --natural is shorthand for --grade natural
+    effective_preset = grade_preset
+    effective_desat = None
+    if not effective_preset and natural:
+        effective_preset = "natural"
+        effective_desat = natural_amount
+
+    if effective_preset:
+        from grade import grade_image
+
+        print(f"Grading: {effective_preset} preset...")
+        try:
+            grade_image(
+                result.output_path,
+                preset=effective_preset,
+                desat_amount=effective_desat,
+            )
+            print("Graded successfully.")
+        except Exception as e:
+            print(f"Warning: Grading failed ({e}), keeping ungraded image.")
+
     print(f"Saved to: {result.output_path}")
 
 

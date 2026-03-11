@@ -13,6 +13,9 @@ class GeneratorSettings(BaseSettings):
     flux_default_width: int = 1024
     flux_default_height: int = 1024
     flux_default_seed: Optional[int] = None
+    flux_guidance: float = 3.5  # CFG scale (dev only, ignored for schnell)
+    flux_lora_paths: list[str] = []  # .safetensors LoRA file paths
+    flux_lora_scales: list[float] = []  # weight per LoRA (default 1.0 each)
     flux_output_dir: str = "~/Desktop"
 
     # Gemini API (for prompt expansion)

@@ -3,6 +3,7 @@
 
 import logging
 import os
+import random
 import sys
 import warnings
 from datetime import datetime
@@ -56,17 +57,22 @@ def main():
         print(f"Error: Unknown model '{model}'. Use 'dev' or 'schnell'.")
         sys.exit(1)
 
+    # Resolve seed early so it can be included in the filename
+    if seed is None:
+        seed = random.randint(0, 2**32 - 1)
+    else:
+        seed = int(seed)
+
     # Default output path
     if not output:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output = str(Path(f"~/Desktop/flux_{timestamp}.png").expanduser())
+        output = str(Path(f"~/Desktop/flux_{timestamp}_s{seed}.png").expanduser())
 
     settings = GeneratorSettings()
     generator = create_generator(gen_type, settings)
 
     print(f"Model:  FLUX.1-{model}")
     print(f"Prompt: {prompt}")
-    print(f"Output: {output}")
     print()
 
     result = generator.generate(
@@ -75,7 +81,7 @@ def main():
         width=int(width),
         height=int(height),
         steps=int(steps) if steps else None,
-        seed=int(seed) if seed else None,
+        seed=seed,
     )
 
     if result.error:
@@ -83,6 +89,7 @@ def main():
         sys.exit(1)
 
     print(f"Generated {result.width}x{result.height} in {result.processing_time_ms:.0f}ms")
+    print(f"Seed:     {result.seed}")
     print(f"Saved to: {result.output_path}")
 
 

@@ -31,15 +31,27 @@ class FluxGenerator(ImageGenerator):
         if self._model is not None:
             return
         from mflux.models.flux.variants.txt2img.flux import Flux1
+        from mflux.models.common.config.model_config import ModelConfig
 
         self._logger.info(
             f"Loading FLUX.1-{self._model_name()} "
             f"(first run downloads ~12GB from HuggingFace)..."
         )
-        kwargs = {"model_name": self._model_name()}
+        model_config = (
+            ModelConfig.dev()
+            if self._type == GeneratorType.FLUX_DEV
+            else ModelConfig.schnell()
+        )
+        kwargs = {"model_config": model_config}
         if self._settings.flux_quantization:
             kwargs["quantize"] = self._settings.flux_quantization
-        self._model = Flux1.from_name(**kwargs)
+        if self._settings.flux_lora_paths:
+            kwargs["lora_paths"] = self._settings.flux_lora_paths
+            kwargs["lora_scales"] = (
+                self._settings.flux_lora_scales
+                or [1.0] * len(self._settings.flux_lora_paths)
+            )
+        self._model = Flux1(**kwargs)
 
     def generate(
         self,
@@ -51,6 +63,7 @@ class FluxGenerator(ImageGenerator):
         seed: Optional[int] = None,
         image_path: Optional[str | Path] = None,
         image_strength: Optional[float] = None,
+        guidance: Optional[float] = None,
     ) -> GenerationResult:
         if not prompt or not prompt.strip():
             raise InvalidPromptError("Prompt cannot be empty")
@@ -59,6 +72,7 @@ class FluxGenerator(ImageGenerator):
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         steps = steps or self._default_steps()
+        guidance = guidance if guidance is not None else self._settings.flux_guidance
         seed = seed if seed is not None else self._settings.flux_default_seed
         if seed is None:
             seed = random.randint(0, 2**32 - 1)
@@ -73,6 +87,7 @@ class FluxGenerator(ImageGenerator):
                 num_inference_steps=steps,
                 height=height,
                 width=width,
+                guidance=guidance,
             )
             if image_path is not None:
                 gen_kwargs["image_path"] = str(Path(image_path).expanduser())

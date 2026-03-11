@@ -4,10 +4,10 @@ A framework that combines FLUX.1 image generation, a curated visual style librar
 
 ## What It Does
 
-1. **Generate** — Create images from text prompts using FLUX.1 (Schnell for speed, Dev for quality)
-2. **Imagine** — Describe a vibe and let Gemini expand it into a production-ready FLUX prompt, drawing from a 124-style visual library
-3. **Analyze** — Run local vision models (LLaVA, YOLO, CLIP) to understand image content
-4. **Edit** — Apply GIMP effects via Claude Code skills (color grading, filters, text overlay, and more)
+1. **Generate** — Direct FLUX prompt-to-image (`generate.py`). No expansion, no styles, no grading — bare-metal manual control for when you know exactly what you want.
+2. **Imagine** — Describe a vibe and let Gemini expand it into a production-ready FLUX prompt (`imagine.py`). Classifies against a 124-style visual library, supports LoRA loading, CFG guidance, and optional GIMP post-grading.
+3. **Analyze** — Run local vision models (LLaVA, YOLO, CLIP) to understand image content.
+4. **Edit** — Apply GIMP effects via Claude Code skills (color grading, filters, text overlay).
 
 ## Quick Start
 
@@ -18,22 +18,73 @@ pip install -r requirements.txt
 
 # Copy env template and add your API keys
 cp .env.example .env
+```
 
-# Generate an image from a direct prompt
+## Generation
+
+### generate.py — Direct Prompt
+
+Sends your prompt straight to FLUX with no processing. Use this when you want full control over the exact prompt text.
+
+```bash
+# Basic generation (schnell, fast)
 ./generate.py "a rabbit in a field of wildflowers" --model schnell
 
-# Generate from a vibe (auto-expanded via Gemini + style library)
-./imagine.py "dystopian corridor"
+# Higher quality with dev model
+./generate.py "a rabbit in a field of wildflowers" --model dev --steps 30
 
-# Higher quality with FLUX.1-dev (25 inference steps)
-./imagine.py "cyberpunk alleyway" --model dev
+# Custom seed for reproducibility
+./generate.py "a rabbit in a field of wildflowers" --seed 42 --output ~/Desktop/rabbit.png
+```
+
+### imagine.py — Vibe-to-Image Pipeline
+
+The full creative pipeline: classifies your vibe against the style library, expands it via Gemini into FLUX-optimized language, generates the image, and optionally applies GIMP post-grading.
+
+```bash
+# Vibe mode — short prompt gets expanded via Gemini + style library
+./imagine.py "melancholic rain"
 
 # HD output (1024x1024)
 ./imagine.py "ethereal forest" --model dev --hd
 
-# Analyze an image
-./analyze.py ~/Desktop/photo.jpg --model llava
+# Portrait aspect ratio (768x1152) for full-body shots
+./imagine.py "street fashion" --model dev --portrait
+
+# LoRA weights (HuggingFace repo ID, auto-downloaded and cached)
+./imagine.py "tired nurse" --model dev --lora XLabs-AI/flux-RealismLora
+
+# Lower CFG guidance for less saturated output (dev only, default 3.5)
+./imagine.py "person at a cafe" --model dev --guidance 2.5
+
+# Post-processing with GIMP grading presets
+./imagine.py "golden hour portrait" --model dev --grade natural
+./imagine.py "street scene" --model dev --grade film
+
+# Shorthand for --grade natural
+./imagine.py "beach sunset" --model dev --natural
+
+# Image-to-image with reference
+./imagine.py "oil painting version" --image ~/Desktop/photo.jpg --strength 0.6
+
+# Detailed prompts (3+ sentences) are used verbatim — no Gemini rewrite
+./imagine.py "A lone figure stands beneath a flickering fluorescent light..."
+
+# Raw mode — no expansion at all
+./imagine.py "rabbit sitting in grass" --raw
 ```
+
+### generate.py vs imagine.py
+
+| | `generate.py` | `imagine.py` |
+|---|---|---|
+| **Purpose** | Manual control | Creative pipeline |
+| **Prompt** | Used verbatim | Expanded via Gemini + style library |
+| **Styles** | None | Auto-classified from 124-style library |
+| **LoRA** | No | `--lora` flag |
+| **Guidance** | No | `--guidance` flag (dev only) |
+| **Grading** | No | `--grade` / `--natural` flags |
+| **Best for** | Testing exact prompts, debugging | Creative exploration, production images |
 
 ## Models
 
@@ -47,23 +98,37 @@ cp .env.example .env
 
 *First load ~160s, subsequent runs ~5s
 
-## Prompt Handling
+## LoRA Support
 
-The `imagine.py` pipeline has three modes:
-
-- **Vibe mode** (default): Short prompts (1-2 sentences) are classified against the style library, then expanded by Gemini into FLUX-optimized language
-- **Detailed mode** (auto): Prompts with 3+ sentences are used verbatim — no Gemini rewrite, no risk of overriding deliberate creative choices
-- **Raw mode** (`--raw`): Bypasses all expansion, sends the prompt directly to FLUX
+LoRA weights bias FLUX output in specific directions without modifying the base model. Specify by HuggingFace repo ID — weights are auto-downloaded and cached on first use.
 
 ```bash
-# Vibe — gets expanded
-./imagine.py "melancholic rain"
+# Photorealism correction
+./imagine.py "street portrait" --model dev --lora XLabs-AI/flux-RealismLora
 
-# Detailed — used verbatim (3+ sentences detected)
-./imagine.py "A lone figure stands beneath a flickering fluorescent light in an abandoned hospital corridor. The walls are stained with water damage and peeling green paint. Shot on 35mm film with heavy grain and desaturated color."
+# Anime cel style
+./imagine.py "warrior in forest" --model dev --lora alvdansen/flux-koda
 
-# Raw — no processing at all
-./imagine.py "rabbit sitting in grass" --raw
+# Multiple LoRAs (comma-separated)
+./imagine.py "scene" --model dev --lora XLabs-AI/flux-RealismLora,alvdansen/flux-koda
+```
+
+LoRAs are cached at `~/Library/Caches/mflux/loras/` after first download.
+
+## Grading Pipeline
+
+Optional GIMP-based post-processing that reduces AI oversaturation and adds film-like qualities. Only runs when explicitly requested via `--grade` or `--natural`.
+
+| Preset | What it does |
+|--------|-------------|
+| `minimal` | Targeted desaturation of reds/yellows (fixes AI skin tones) |
+| `natural` | + lift blacks (film fade) + warm color temperature shift |
+| `film` | + film grain + vignette + edge softening |
+
+```bash
+./imagine.py "portrait" --model dev --grade minimal
+./imagine.py "portrait" --model dev --grade natural
+./imagine.py "portrait" --model dev --grade film
 ```
 
 ## Style Library
@@ -91,26 +156,26 @@ The `imagine.py` pipeline has three modes:
 | optical/ | 6 | anamorphic, shallow-focus, telephoto |
 | time-motion/ | 6 | frozen, blurred, ephemeral, decayed |
 
-Each style file contains Visual DNA (what it does, key characteristics, reference points, pairings) and FLUX keywords for prompt injection.
+Each style file contains Visual DNA (key characteristics, reference points, pairings) and FLUX keywords for prompt injection. When a vibe doesn't match existing styles, the system auto-researches and creates a new style definition.
 
 ## GIMP Skills
 
 Claude Code skills for batch image processing via GIMP 3.x:
 
 - **Color**: brightness-contrast, color-balance, color-harmonize, desaturate, duotone, posterize
-- **Effects**: cartoon, vignette, pixelize
+- **Effects**: vignette
 - **Text**: text-overlay
-- **Conversion**: line-drawing
 
 ## Repository Structure
 
 ```
 imganary/
-├── generate.py          # Direct FLUX prompt → image
-├── imagine.py           # Vibe → expand → generate pipeline
+├── generate.py          # Direct FLUX prompt → image (manual control)
+├── imagine.py           # Vibe → expand → generate → grade pipeline
 ├── analyze.py           # Vision model analysis (LLaVA/YOLO/CLIP)
+├── grade.py             # GIMP grading pipeline (minimal/natural/film presets)
 ├── imganary.py          # Chat agent interface
-├── generators/          # FLUX generator (ABC, factory, config)
+├── generators/          # FLUX generator (ABC, factory, config, LoRA support)
 ├── models/              # Vision model wrappers
 ├── prompts/
 │   ├── expand.md        # Gemini system prompt for vibe expansion
@@ -124,10 +189,25 @@ imganary/
 ## Environment
 
 - Python 3.12 (Apple Silicon native)
-- GIMP 3.0.8 (Homebrew cask)
 - mflux for FLUX.1 generation (MLX, Apple Silicon optimized)
-- Ollama for LLaVA
 - Google Gemini API for prompt expansion
+- Ollama for LLaVA (optional — only needed for `analyze.py`)
+- GIMP 3.0+ (optional — only needed for `--grade`/`--natural` and Claude Code skills)
+
+### Installing GIMP (optional)
+
+GIMP is only required for the grading pipeline and GIMP skills. Generation and analysis work without it.
+
+```bash
+# macOS (Homebrew)
+brew install --cask gimp
+
+# Linux
+sudo apt install gimp   # Debian/Ubuntu
+sudo dnf install gimp   # Fedora
+```
+
+See [docs/gimp-batch-mode.md](docs/gimp-batch-mode.md) for macOS headless batch mode setup.
 
 ## License
 

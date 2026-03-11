@@ -49,6 +49,7 @@ class ImageGenerator(ABC):
         seed: Optional[int] = None,
         image_path: Optional[str | Path] = None,
         image_strength: Optional[float] = None,
+        guidance: Optional[float] = None,
     ) -> GenerationResult:
         """Generate an image from a text prompt, optionally using a reference image."""
         ...
