@@ -91,15 +91,23 @@ def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
     # Classify vibe → get relevant styles (auto-research if needed)
     matched_styles = classify_and_resolve(vibe, settings)
 
+    # Non-photographic style categories — skip photo/figure defaults when these are matched
+    non_photo_categories = ("illustration/", "fine-art/", "design/", "digital/")
+    is_non_photo = any(s.startswith(non_photo_categories) for s in matched_styles)
+
     # Auto-inject approachable figure style when no figure style is explicitly matched
-    has_figure_style = any(s.startswith("figure/") for s in matched_styles)
-    if not has_figure_style:
-        matched_styles.append("figure/approachable")
+    # (skip for non-photographic styles like illustration, fine-art, etc.)
+    if not is_non_photo:
+        has_figure_style = any(s.startswith("figure/") for s in matched_styles)
+        if not has_figure_style:
+            matched_styles.append("figure/approachable")
 
     # Auto-inject photorealistic rendering when no rendering style is explicitly matched
-    has_rendering_style = any(s.startswith("rendering/") for s in matched_styles)
-    if not has_rendering_style:
-        matched_styles.append("rendering/photorealistic")
+    # (skip for non-photographic styles — they shouldn't get "real photograph" cues)
+    if not is_non_photo:
+        has_rendering_style = any(s.startswith("rendering/") for s in matched_styles)
+        if not has_rendering_style:
+            matched_styles.append("rendering/photorealistic")
 
     # Separate figure styles from other styles for different injection framing
     figure_styles = [s for s in matched_styles if s.startswith("figure/")]
