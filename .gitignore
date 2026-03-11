@@ -23,6 +23,8 @@ models/*.bin
 models/*.pt
 models/*.onnx
 models/*.safetensors
+loras/*.safetensors
+loras/*.json
 
 # OS
 .DS_Store

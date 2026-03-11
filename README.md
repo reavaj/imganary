@@ -100,11 +100,42 @@ The full creative pipeline: classifies your vibe against the style library, expa
 
 ## LoRA Support
 
-LoRA weights bias FLUX output in specific directions without modifying the base model. Specify by HuggingFace repo ID — weights are auto-downloaded and cached on first use.
+LoRA weights bias FLUX output in specific directions without modifying the base model.
+
+### Browse & Download (CivitAI)
+
+Search CivitAI's library of FLUX-compatible LoRAs, view details, and download directly:
 
 ```bash
-# Photorealism correction
+# Search for realism LoRAs
+./loras.py search realism
+
+# Browse top FLUX.1 Dev LoRAs
+./loras.py search "" --limit 20
+
+# Search across all base models
+./loras.py search "film grain" --all
+
+# View model details (shows versions, trigger words, download counts)
+./loras.py info 631986
+
+# Download a specific version to loras/
+./loras.py download 706528
+
+# List all locally available LoRAs (local + HuggingFace cached)
+./loras.py list
+```
+
+Downloaded LoRAs are saved to `loras/` with a JSON metadata sidecar containing trigger words and source info.
+
+### Using LoRAs
+
+```bash
+# HuggingFace repo ID (auto-downloaded and cached)
 ./imagine.py "street portrait" --model dev --lora XLabs-AI/flux-RealismLora
+
+# Local file from CivitAI download
+./imagine.py "street portrait" --model dev --lora loras/xlabs-flux-realism-lora.safetensors
 
 # Anime cel style
 ./imagine.py "warrior in forest" --model dev --lora alvdansen/flux-koda
@@ -113,7 +144,7 @@ LoRA weights bias FLUX output in specific directions without modifying the base 
 ./imagine.py "scene" --model dev --lora XLabs-AI/flux-RealismLora,alvdansen/flux-koda
 ```
 
-LoRAs are cached at `~/Library/Caches/mflux/loras/` after first download.
+HuggingFace LoRAs are cached at `~/Library/Caches/mflux/loras/`. CivitAI downloads go to `loras/`.
 
 ## Grading Pipeline
 
@@ -174,7 +205,8 @@ imganary/
 ├── imagine.py           # Vibe → expand → generate → grade pipeline
 ├── analyze.py           # Vision model analysis (LLaVA/YOLO/CLIP)
 ├── grade.py             # GIMP grading pipeline (minimal/natural/film presets)
-├── imganary.py          # Chat agent interface
+├── loras.py             # CivitAI LoRA browser, search, and downloader
+├── loras/               # Downloaded LoRA weights + metadata (gitignored)
 ├── generators/          # FLUX generator (ABC, factory, config, LoRA support)
 ├── models/              # Vision model wrappers
 ├── prompts/
