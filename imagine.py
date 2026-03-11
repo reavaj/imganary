@@ -215,7 +215,25 @@ def main():
 
     settings = GeneratorSettings()
 
-    # Apply CLI overrides to settings
+    # Auto-detect photorealistic intent from vibe keywords
+    # Applies realism LoRA + low guidance unless user explicitly overrides
+    photo_keywords = ("photo", "photograph", "photorealistic")
+    vibe_lower = vibe.lower()
+    is_photo_intent = any(kw in vibe_lower for kw in photo_keywords)
+    if is_photo_intent:
+        # Photo intent forces dev model (higher quality, supports guidance + LoRA)
+        if model == "schnell":
+            model = "dev"
+            gen_type = type_map["dev"]
+            print("Photo intent detected — switching to dev model")
+        if not lora_str and not settings.flux_lora_paths:
+            settings.flux_lora_paths = ["XLabs-AI/flux-RealismLora"]
+            print("Photo intent detected — using RealismLora")
+        if not guidance_str:
+            settings.flux_guidance = 2.5
+            print("Photo intent detected — guidance set to 2.5")
+
+    # Apply CLI overrides to settings (these take precedence over auto-detection)
     if lora_str:
         settings.flux_lora_paths = [p.strip() for p in lora_str.split(",")]
     if guidance_str:
