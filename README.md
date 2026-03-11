@@ -164,12 +164,12 @@ Optional GIMP-based post-processing that reduces AI oversaturation and adds film
 
 ## Style Library
 
-132 style definitions across 16 categories, used by the prompt expansion pipeline:
+140 style definitions across 16 categories, used by the prompt expansion pipeline:
 
 | Category | Count | Examples |
 |----------|-------|---------|
 | **Styles** | | |
-| photography/ | 12 | film-noir, editorial-fashion, street-documentary, food, rain-wet, golden-hour, portrait, macro, interior-design, infrared, signage-typography |
+| photography/ | 16 | film-noir, editorial-fashion, food, rain-wet, golden-hour, portrait, macro, interior-design, infrared, signage-typography, abandoned-decay, underwater, period-1950s, period-1970s |
 | illustration/ | 5 | anime-cel, ukiyo-e, vintage-poster |
 | fine-art/ | 3 | oil-painting, watercolor, pop-art |
 | design/ | 4 | psychedelic, steampunk, swiss-modernist |
@@ -178,13 +178,13 @@ Optional GIMP-based post-processing that reduces AI oversaturation and adds film
 | **Adjectives** | | |
 | lighting/ | 12 | chiaroscuro, volumetric, candlelit, fluorescent |
 | color/ | 12 | saturated, neon, jewel-toned, oxidized |
-| texture/ | 12 | grainy, impasto, corroded, translucent |
+| texture/ | 15 | grainy, impasto, corroded, translucent, glass-transparency, fabric-textile, metal-patina |
 | mood/ | 14 | ethereal, ominous, whimsical, hallucinatory |
 | composition/ | 10 | symmetrical, panoramic, fragmented, towering |
 | rendering/ | 12 | painterly, cel-shaded, solarized, cross-hatched |
 | form/ | 8 | angular, organic, monolithic, skeletal |
 | scale/ | 8 | intricate, hyper-detailed, vast, ornate |
-| optical/ | 6 | anamorphic, shallow-focus, telephoto |
+| optical/ | 7 | anamorphic, shallow-focus, telephoto, tilt-shift |
 | time-motion/ | 6 | frozen, blurred, ephemeral, decayed |
 
 Each style file contains Visual DNA (key characteristics, reference points, pairings) and FLUX keywords for prompt injection. When a vibe doesn't match existing styles, the system auto-researches and creates a new style definition.
