@@ -64,12 +64,6 @@ class FluxGenerator(ImageGenerator):
             kwargs["model_config"] = model_config
             self._model = Flux1Controlnet(**kwargs)
 
-        elif mode == "fill":
-            from mflux.models.flux.variants.fill.flux_fill import Flux1Fill
-            self._logger.info(f"Loading FLUX.1 Fill model...")
-            kwargs["model_config"] = ModelConfig.dev_fill()
-            self._model = Flux1Fill(**kwargs)
-
         else:  # txt2img
             from mflux.models.flux.variants.txt2img.flux import Flux1
             model_config = ModelConfig.dev() if is_dev else ModelConfig.schnell()
