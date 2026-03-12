@@ -157,6 +157,9 @@ def main():
             "       [--image path] [--image2 path] [--strength 0.0-1.0]\n"
             "       [--guidance N]  (CFG scale, default 3.5 — lower = less saturated, dev only)\n"
             "       [--lora path.safetensors]  (LoRA weights, comma-separated for multiple)\n"
+            "       [--controlnet path]  (ControlNet canny edge reference image)\n"
+            "       [--controlnet-strength 0.0-1.0]  (ControlNet influence, default 0.5)\n"
+            "       [--face-detail]  (re-generate faces at higher detail via inpainting)\n"
             "       [--grade minimal|natural|film]  (GIMP post-grading preset)\n"
             "       [--natural [AMOUNT]]  (shorthand for --grade natural)\n"
             "       [--portrait]  (tall aspect ratio for full-body shots: 768x1152)"
@@ -205,6 +208,9 @@ def main():
     image = _flag("--image")
     image2 = _flag("--image2")
     strength = _flag("--strength", "0.5")
+    controlnet = _flag("--controlnet")
+    controlnet_strength = _flag("--controlnet-strength", "0.5")
+    face_detail = "--face-detail" in sys.argv
 
     # Resolve generator type
     type_map = {"dev": GeneratorType.FLUX_DEV, "schnell": GeneratorType.FLUX_SCHNELL}
@@ -214,6 +220,12 @@ def main():
         sys.exit(1)
 
     settings = GeneratorSettings()
+
+    # Face detail requires dev model (Fill model is dev-only)
+    if face_detail and model == "schnell":
+        model = "dev"
+        gen_type = type_map["dev"]
+        print("Face detail requires dev model — switching from schnell")
 
     # Auto-detect photorealistic intent from vibe keywords
     # Applies realism LoRA + low guidance unless user explicitly overrides
@@ -287,11 +299,17 @@ def main():
         print(f"Image:  {ref_image}")
         print(f"Strength: {strength}")
 
+    if controlnet:
+        print(f"ControlNet: {controlnet}")
+        print(f"CN Strength: {controlnet_strength}")
+
     print(f"Model:  FLUX.1-{model}")
     if model == "dev":
         print(f"CFG:    {settings.flux_guidance}")
     if settings.flux_lora_paths:
         print(f"LoRA:   {', '.join(settings.flux_lora_paths)}")
+    if face_detail:
+        print("Face:   --face-detail (post-gen inpainting)")
     if grade_preset:
         print(f"Grade:  --grade {grade_preset}")
     elif natural:
@@ -310,6 +328,8 @@ def main():
         image_path=ref_image,
         image_strength=float(strength) if ref_image else None,
         guidance=settings.flux_guidance,
+        controlnet_image_path=controlnet,
+        controlnet_strength=float(controlnet_strength) if controlnet else None,
     )
 
     # Clean up temp blend file
@@ -323,6 +343,26 @@ def main():
     print(f"Generated {result.width}x{result.height} in {result.processing_time_ms:.0f}ms")
     if result.seed is not None:
         print(f"Seed:   {result.seed}")
+
+    # Post-processing: face detail enhancement via inpainting
+    if face_detail and not result.error:
+        from face_detail import enhance_faces
+
+        print("Face detail: detecting and enhancing faces...")
+        try:
+            n_faces = enhance_faces(
+                image_path=result.output_path,
+                generator=generator,
+                prompt=prompt,
+                seed=seed,
+                guidance=settings.flux_guidance,
+            )
+            if n_faces > 0:
+                print(f"Face detail: enhanced {n_faces} face(s)")
+            else:
+                print("Face detail: no faces detected")
+        except Exception as e:
+            print(f"Warning: Face detail failed ({e}), keeping original image.")
 
     # Post-processing: GIMP photo grading
     # --grade <preset> takes priority; --natural is shorthand for --grade natural
