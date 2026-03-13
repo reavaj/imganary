@@ -1,0 +1,116 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "__MODEL_NAME__",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "__CLIP_NAME1__",
+      "clip_name2": "__CLIP_NAME2__",
+      "type": "flux"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "__VAE_NAME__"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "__PROMPT__",
+      "clip": ["2", 0]
+    }
+  },
+  "5": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": "__WIDTH__",
+      "height": "__HEIGHT__",
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": "__SEED__"
+    }
+  },
+  "20": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "__STYLE_IMAGE__",
+      "upload": "image"
+    }
+  },
+  "21": {
+    "class_type": "IPAdapterFluxLoader",
+    "inputs": {
+      "ipadapter": "__IPADAPTER_NAME__",
+      "clip_vision": "google/siglip-so400m-patch14-384",
+      "provider": "mps"
+    }
+  },
+  "22": {
+    "class_type": "ApplyIPAdapterFlux",
+    "inputs": {
+      "model": ["1", 0],
+      "ipadapter_flux": ["21", 0],
+      "image": ["20", 0],
+      "weight": "__STYLE_STRENGTH__",
+      "start_percent": 0.0,
+      "end_percent": 1.0
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["22", 0],
+      "conditioning": ["4", 0]
+    }
+  },
+  "8": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": ["22", 0],
+      "scheduler": "normal",
+      "steps": "__STEPS__",
+      "denoise": 1.0
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "10": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["6", 0],
+      "guider": ["7", 0],
+      "sampler": ["9", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["5", 0]
+    }
+  },
+  "11": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["10", 0],
+      "vae": ["3", 0]
+    }
+  },
+  "12": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "imganary",
+      "images": ["11", 0]
+    }
+  }
+}

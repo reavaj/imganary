@@ -1,12 +1,14 @@
 from typing import Dict, Optional
 
 from .config import GeneratorSettings
+from .comfyui_generator import ComfyUIGenerator
 from .flux_generator import FluxGenerator
 from .interfaces import GeneratorType, ImageGenerator
 
 _REGISTRY: Dict[GeneratorType, type] = {
     GeneratorType.FLUX_DEV: FluxGenerator,
     GeneratorType.FLUX_SCHNELL: FluxGenerator,
+    GeneratorType.COMFYUI: ComfyUIGenerator,
 }
 
 

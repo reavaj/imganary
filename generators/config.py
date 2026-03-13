@@ -18,6 +18,15 @@ class GeneratorSettings(BaseSettings):
     flux_lora_scales: list[float] = []  # weight per LoRA (default 1.0 each)
     flux_output_dir: str = "~/Desktop"
 
+    # ComfyUI
+    comfyui_url: str = "http://127.0.0.1:8000"
+    comfyui_timeout: int = 600  # seconds (first run loads ~12GB model)
+    comfyui_model_name: str = "flux1-dev.safetensors"
+    comfyui_clip_name1: str = "t5xxl_fp16.safetensors"
+    comfyui_clip_name2: str = "clip_l.safetensors"
+    comfyui_vae_name: str = "ae.safetensors"
+    comfyui_ipadapter_name: str = "ip-adapter.bin"
+
     # Gemini API (for prompt expansion)
     ai_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"

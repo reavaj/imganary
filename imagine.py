@@ -161,7 +161,10 @@ def main():
             "       [--controlnet-strength 0.0-1.0]  (ControlNet influence, default 0.5)\n"
             "       [--grade minimal|natural|film]  (GIMP post-grading preset)\n"
             "       [--natural [AMOUNT]]  (shorthand for --grade natural)\n"
-            "       [--portrait]  (tall aspect ratio for full-body shots: 768x1152)"
+            "       [--portrait]  (tall aspect ratio for full-body shots: 768x1152)\n"
+            "       [--engine mflux|comfyui]  (generation backend, default mflux)\n"
+            "       [--style-image path]  (IP-Adapter style reference, auto-selects comfyui)\n"
+            "       [--style-strength 0.0-1.0]  (style transfer influence, default 0.7)"
         )
         sys.exit(1)
 
@@ -209,13 +212,24 @@ def main():
     strength = _flag("--strength", "0.5")
     controlnet = _flag("--controlnet")
     controlnet_strength = _flag("--controlnet-strength", "0.5")
+    engine = _flag("--engine", "mflux")
+    style_image = _flag("--style-image")
+    style_strength = _flag("--style-strength", "0.7")
+
+    # --style-image implies ComfyUI engine
+    if style_image and engine == "mflux":
+        engine = "comfyui"
+        print("Style transfer requested — switching to ComfyUI engine")
 
     # Resolve generator type
-    type_map = {"dev": GeneratorType.FLUX_DEV, "schnell": GeneratorType.FLUX_SCHNELL}
-    gen_type = type_map.get(model)
-    if gen_type is None:
-        print(f"Error: Unknown model '{model}'. Use 'dev' or 'schnell'.")
-        sys.exit(1)
+    if engine == "comfyui":
+        gen_type = GeneratorType.COMFYUI
+    else:
+        type_map = {"dev": GeneratorType.FLUX_DEV, "schnell": GeneratorType.FLUX_SCHNELL}
+        gen_type = type_map.get(model)
+        if gen_type is None:
+            print(f"Error: Unknown model '{model}'. Use 'dev' or 'schnell'.")
+            sys.exit(1)
 
     settings = GeneratorSettings()
 
@@ -287,7 +301,10 @@ def main():
         ref_image = tmp_blend.name
         print(f"Blended: {image} + {image2}")
 
-    if ref_image:
+    if style_image:
+        print(f"Style:  {style_image}")
+        print(f"Style Strength: {style_strength}")
+    elif ref_image:
         print(f"Image:  {ref_image}")
         print(f"Strength: {strength}")
 
@@ -295,11 +312,14 @@ def main():
         print(f"ControlNet: {controlnet}")
         print(f"CN Strength: {controlnet_strength}")
 
-    print(f"Model:  FLUX.1-{model}")
-    if model == "dev":
-        print(f"CFG:    {settings.flux_guidance}")
-    if settings.flux_lora_paths:
-        print(f"LoRA:   {', '.join(settings.flux_lora_paths)}")
+    if engine == "comfyui":
+        print("Engine: ComfyUI")
+    else:
+        print(f"Model:  FLUX.1-{model}")
+        if model == "dev":
+            print(f"CFG:    {settings.flux_guidance}")
+        if settings.flux_lora_paths:
+            print(f"LoRA:   {', '.join(settings.flux_lora_paths)}")
     if grade_preset:
         print(f"Grade:  --grade {grade_preset}")
     elif natural:
@@ -308,6 +328,18 @@ def main():
     print()
 
     generator = create_generator(gen_type, settings)
+
+    # Route image_path: style transfer uses style_image, otherwise use ref_image (img2img)
+    if style_image:
+        gen_image_path = style_image
+        gen_image_strength = float(style_strength)
+    elif ref_image:
+        gen_image_path = ref_image
+        gen_image_strength = float(strength)
+    else:
+        gen_image_path = None
+        gen_image_strength = None
+
     result = generator.generate(
         prompt=prompt,
         output_path=output,
@@ -315,8 +347,8 @@ def main():
         height=int(height),
         steps=int(steps) if steps else None,
         seed=seed,
-        image_path=ref_image,
-        image_strength=float(strength) if ref_image else None,
+        image_path=gen_image_path,
+        image_strength=gen_image_strength,
         guidance=settings.flux_guidance,
         controlnet_image_path=controlnet,
         controlnet_strength=float(controlnet_strength) if controlnet else None,
