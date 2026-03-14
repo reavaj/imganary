@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 class GeneratorType(str, Enum):
     FLUX_DEV = "flux-dev"
     FLUX_SCHNELL = "flux-schnell"
-    COMFYUI = "comfyui"
+    IPADAPTER = "ipadapter"
+    POSE = "pose"
 
 
 class GenerationResult(BaseModel):

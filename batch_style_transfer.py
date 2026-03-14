@@ -12,7 +12,7 @@ STYLES_DIR = Path("/Users/reavaj/Documents/photo2024")
 OUTPUT_DIR = Path("~/Desktop/style_batch").expanduser()
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-STYLE_STRENGTH = 0.9
+STYLE_STRENGTH = 0.2
 NUM_IMAGES = 20
 
 # Creative prompts — wild, cinematic, atmospheric

@@ -162,9 +162,11 @@ def main():
             "       [--grade minimal|natural|film]  (GIMP post-grading preset)\n"
             "       [--natural [AMOUNT]]  (shorthand for --grade natural)\n"
             "       [--portrait]  (tall aspect ratio for full-body shots: 768x1152)\n"
-            "       [--engine mflux|comfyui]  (generation backend, default mflux)\n"
-            "       [--style-image path]  (IP-Adapter style reference, auto-selects comfyui)\n"
-            "       [--style-strength 0.0-1.0]  (style transfer influence, default 0.7)"
+            "       [--engine mflux|ipadapter|pose]  (generation backend, default mflux)\n"
+            "       [--style-image path]  (IP-Adapter style reference, auto-selects ipadapter)\n"
+            "       [--style-strength 0.0-1.0]  (style transfer influence, default 0.7)\n"
+            "       [--pose-image path]  (pose skeleton image, auto-selects pose engine)\n"
+            "       [--pose-strength 0.0-1.0]  (pose ControlNet influence, default 0.8)"
         )
         sys.exit(1)
 
@@ -215,15 +217,24 @@ def main():
     engine = _flag("--engine", "mflux")
     style_image = _flag("--style-image")
     style_strength = _flag("--style-strength", "0.7")
+    pose_image = _flag("--pose-image")
+    pose_strength = _flag("--pose-strength", "0.8")
 
-    # --style-image implies ComfyUI engine
+    # --style-image implies standalone IP-Adapter engine (no server needed)
     if style_image and engine == "mflux":
-        engine = "comfyui"
-        print("Style transfer requested — switching to ComfyUI engine")
+        engine = "ipadapter"
+        print("Style transfer requested — switching to standalone IP-Adapter engine")
+
+    # --pose-image implies pose ControlNet engine
+    if pose_image and engine == "mflux":
+        engine = "pose"
+        print("Pose transfer requested — switching to pose ControlNet engine")
 
     # Resolve generator type
-    if engine == "comfyui":
-        gen_type = GeneratorType.COMFYUI
+    if engine == "pose":
+        gen_type = GeneratorType.POSE
+    elif engine == "ipadapter":
+        gen_type = GeneratorType.IPADAPTER
     else:
         type_map = {"dev": GeneratorType.FLUX_DEV, "schnell": GeneratorType.FLUX_SCHNELL}
         gen_type = type_map.get(model)
@@ -301,7 +312,10 @@ def main():
         ref_image = tmp_blend.name
         print(f"Blended: {image} + {image2}")
 
-    if style_image:
+    if pose_image:
+        print(f"Pose:   {pose_image}")
+        print(f"Pose Strength: {pose_strength}")
+    elif style_image:
         print(f"Style:  {style_image}")
         print(f"Style Strength: {style_strength}")
     elif ref_image:
@@ -312,8 +326,10 @@ def main():
         print(f"ControlNet: {controlnet}")
         print(f"CN Strength: {controlnet_strength}")
 
-    if engine == "comfyui":
-        print("Engine: ComfyUI")
+    if engine == "pose":
+        print("Engine: Pose ControlNet (diffusers)")
+    elif engine == "ipadapter":
+        print("Engine: IP-Adapter (standalone)")
     else:
         print(f"Model:  FLUX.1-{model}")
         if model == "dev":
@@ -340,6 +356,13 @@ def main():
         gen_image_path = None
         gen_image_strength = None
 
+    # Pose image routes through controlnet_image_path on the pose generator
+    effective_controlnet = pose_image if pose_image else controlnet
+    effective_controlnet_strength = (
+        float(pose_strength) if pose_image else
+        float(controlnet_strength) if controlnet else None
+    )
+
     result = generator.generate(
         prompt=prompt,
         output_path=output,
@@ -350,8 +373,8 @@ def main():
         image_path=gen_image_path,
         image_strength=gen_image_strength,
         guidance=settings.flux_guidance,
-        controlnet_image_path=controlnet,
-        controlnet_strength=float(controlnet_strength) if controlnet else None,
+        controlnet_image_path=effective_controlnet,
+        controlnet_strength=effective_controlnet_strength,
     )
 
     # Clean up temp blend file

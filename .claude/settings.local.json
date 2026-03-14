@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python loras.py info 1698953)",
+      "Bash(python loras.py info 2280495)",
+      "Bash(python -c \":*)"
+    ]
+  }
+}
