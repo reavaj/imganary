@@ -11,4 +11,4 @@ The sophisticated illustration style found in The New Yorker, The Atlantic, or N
 - **Rendering:** Flat color fields with minimal shading. Bold outlines or no outlines. Figures slightly abstracted — not photorealistic proportions.
 
 ## FLUX keywords
-editorial illustration, conceptual art, magazine illustration, flat color, limited palette, risograph, graphic, New Yorker style
+editorial magazine illustration conceptual art, flat color fields with minimal shading and bold graphic composition, strictly limited 3-4 color palette muted earth tones with one saturated accent, risograph-inspired color overlaps and halftone texture, visible paper grain and slightly rough edges, figures slightly abstracted not photorealistic proportions, strong negative space as deliberate design element, visual metaphor and intellectual wit, New Yorker The Atlantic opinion page illustration style, pencil texture visible under flat digital color, no photorealism no smooth blending no detailed rendering

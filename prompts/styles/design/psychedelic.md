@@ -11,4 +11,4 @@ The swirling, consciousness-expanding visual language of late 1960s-70s counterc
 - **Rendering:** Flowing organic linework. Flat color fills with elaborate patterning inside. Figures stylized and elongated. Impossible spatial relationships — Escher meets Art Nouveau.
 
 ## FLUX keywords
-psychedelic art, 1960s, concert poster, tie-dye, trippy, acid art, Art Nouveau, flowing lines, neon colors, mandala, counterculture
+psychedelic concert poster art, every surface filled with swirling organic flowing patterns horror vacui, Day-Glo neon saturated clashing complementary colors at full intensity orange-blue red-green violet-yellow, liquid melting surfaces with paisley and fractal patterns, Art Nouveau flowing hand-lettering with elaborate curves, symmetrical mandala radiating pattern, figures dissolving into environment boundaries melting, tie-dye color bleed and shift, glowing pulsating auras around all forms colors emit their own light, 1960s counterculture Grateful Dead poster aesthetic, no straight lines no empty space no muted colors

@@ -11,4 +11,4 @@ The neon-drenched, rain-soaked future-noir of Blade Runner, Ghost in the Shell, 
 - **Camera/rendering:** Anamorphic lens flares, chromatic aberration. Shallow depth of field with neon bokeh. Film grain. Slightly desaturated except for neon sources.
 
 ## FLUX keywords
-cyberpunk, neon, rain, Blade Runner, futuristic city, neon lights, dark sci-fi, dystopian, hologram, wet streets, night
+cyberpunk neon-drenched rain-soaked night scene, hot pink electric blue toxic green neon signage as only light source reflecting off every wet surface, volumetric fog and rain catching colored light beams, dense vertical cityscape cables pipes holographic ads, near-black shadows punctuated by intense neon color, wet concrete corroded metal chrome and rust, anamorphic lens flares chromatic aberration neon bokeh, rain-slicked asphalt reflecting entire skyline, Blade Runner aesthetic high tech low life, claustrophobic narrow alley deep perspective, not clean not bright not daytime

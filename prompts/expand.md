@@ -48,7 +48,7 @@ Choose lighting appropriate to the scene's setting and time of day.
 
 Prompt Ordering (FLUX is attention-weighted — earlier tokens carry more weight):
 
-For PHOTOREALISTIC prompts (the default when no illustration/art style is specified), structure front to back:
+For PHOTOREALISTIC prompts (ONLY when the user explicitly mentions "photo", "photograph", "photorealistic", or a photographic style like "street photography", "portrait photo", "documentary"):
 1. Anti-AI anchors ("real photograph", "not a render", "authentic documentary photo")
 2. Camera/lens specification ("shot on 35mm film", "Kodak Portra 400", "50mm lens")
 3. Subject description (the person, object, or scene)
@@ -57,9 +57,9 @@ For PHOTOREALISTIC prompts (the default when no illustration/art style is specif
 6. Film stock / color tonality ("Kodak Portra 400 palette", "muted natural color")
 7. Imperfection cues ("slight chromatic aberration", "subtle luminance noise")
 
-For NON-PHOTOREALISTIC prompts (illustration, line art, painting, digital art, design, etc.):
-Do NOT use anti-AI anchors, camera specs, film stock, or photo-realism language. Instead:
-1. Medium and technique ("ink line drawing", "watercolor wash", "cel-shaded animation")
+For ALL OTHER prompts (this is the DEFAULT — illustration, painting, digital art, design, anime, abstract, conceptual, or any vibe that doesn't explicitly request photography):
+Do NOT use anti-AI anchors, camera specs, film stock, "real photograph", or photo-realism language. Instead:
+1. Medium and technique ("ink line drawing", "watercolor wash", "cel-shaded animation", "oil on canvas")
 2. Subject description
 3. Composition and framing
 4. Color palette or tonal range

@@ -11,4 +11,4 @@ The bold graphic style of WPA-era travel posters, Soviet constructivism, and mid
 - **Rendering:** Simplified shapes, stylized figures. No photorealism — everything reduced to its most iconic form. Strong silhouettes.
 
 ## FLUX keywords
-vintage poster, WPA style, travel poster, retro illustration, screen print, flat color, lithograph, propaganda art, art deco poster
+vintage lithograph travel poster, flat bold color blocks with visible screen-print registration, limited 4-5 color palette each a solid unmodulated fill, strong geometric simplification of all forms, hand-lettered display typography integrated into composition, WPA Federal Art Project style or 1950s airline poster, paper aging yellowed edges foxing marks, halftone dot pattern in midtones, bold graphic silhouettes against flat color sky, propaganda art poster composition single heroic focal point, no photographic detail no gradients no soft blending

@@ -80,6 +80,17 @@ def classify_and_resolve(vibe: str, settings: GeneratorSettings) -> list[str]:
     return matched
 
 
+NON_PHOTO_KEYWORDS = (
+    "anime", "manga", "cartoon", "comic", "pop art", "pixel art",
+    "watercolor", "oil painting", "sketch", "illustration", "vector",
+    "abstract", "surreal", "cubist", "impressionist", "art deco",
+    "art nouveau", "minimalist", "flat design", "cel shad", "ukiyo",
+    "vaporwave", "synthwave", "retro", "vintage poster", "collage",
+    "graffiti", "street art", "stained glass", "mosaic", "woodcut",
+    "linocut", "etching", "engraving", "blueprint", "schematic",
+)
+
+
 def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
     """Expand a short vibe prompt into FLUX-optimized language via Gemini."""
     api_key = settings.ai_api_key or os.environ.get("AI_API_KEY", "")
@@ -93,18 +104,34 @@ def expand_prompt(vibe: str, settings: GeneratorSettings) -> str:
 
     # Non-photographic style categories — skip photo/figure defaults when these are matched
     non_photo_categories = ("illustration/", "fine-art/", "design/", "digital/")
-    is_non_photo = any(s.startswith(non_photo_categories) for s in matched_styles)
+    vibe_lower = vibe.lower()
+    is_non_photo = (
+        any(s.startswith(non_photo_categories) for s in matched_styles)
+        or any(kw in vibe_lower for kw in NON_PHOTO_KEYWORDS)
+    )
 
-    # Auto-inject approachable figure style when no figure style is explicitly matched
-    # (skip for non-photographic styles like illustration, fine-art, etc.)
-    if not is_non_photo:
+    # Strip photorealistic style if Gemini matched it on a non-photo vibe
+    if is_non_photo:
+        matched_styles = [s for s in matched_styles if s != "rendering/photorealistic"]
+
+    # Auto-inject approachable figure style only when the vibe mentions a human subject
+    # and no figure style is already matched
+    human_keywords = (
+        "person", "people", "man", "woman", "boy", "girl", "child", "kid",
+        "portrait", "face", "figure", "model", "dancer", "athlete", "warrior",
+        "elderly", "young", "old man", "old woman", "couple", "family",
+        "worker", "musician", "soldier", "detective", "scientist", "chef",
+    )
+    has_human_subject = any(kw in vibe_lower for kw in human_keywords)
+    if has_human_subject and not is_non_photo:
         has_figure_style = any(s.startswith("figure/") for s in matched_styles)
         if not has_figure_style:
             matched_styles.append("figure/approachable")
 
-    # Auto-inject photorealistic rendering when no rendering style is explicitly matched
-    # (skip for non-photographic styles — they shouldn't get "real photograph" cues)
-    if not is_non_photo:
+    # Only inject photorealistic rendering when the vibe explicitly mentions "photo"
+    photo_keywords = ("photo", "photograph", "photorealistic", "photorealism")
+    wants_photo = any(kw in vibe_lower for kw in photo_keywords)
+    if wants_photo:
         has_rendering_style = any(s.startswith("rendering/") for s in matched_styles)
         if not has_rendering_style:
             matched_styles.append("rendering/photorealistic")
@@ -216,6 +243,7 @@ def main():
     controlnet_strength = _flag("--controlnet-strength", "0.5")
     engine = _flag("--engine", "mflux")
     style_image = _flag("--style-image")
+    style_image2 = _flag("--style-image2")
     style_strength = _flag("--style-strength", "0.7")
     pose_image = _flag("--pose-image")
     pose_strength = _flag("--pose-strength", "0.8")
@@ -246,9 +274,13 @@ def main():
 
     # Auto-detect photorealistic intent from vibe keywords
     # Applies realism LoRA + low guidance unless user explicitly overrides
+    # Suppressed when non-photo styles are explicitly mentioned
     photo_keywords = ("photo", "photograph", "photorealistic")
     vibe_lower = vibe.lower()
-    is_photo_intent = any(kw in vibe_lower for kw in photo_keywords)
+    has_non_photo_style = any(kw in vibe_lower for kw in NON_PHOTO_KEYWORDS)
+    is_photo_intent = (
+        any(kw in vibe_lower for kw in photo_keywords) and not has_non_photo_style
+    )
     if is_photo_intent:
         # Photo intent forces dev model (higher quality, supports guidance + LoRA)
         if model == "schnell":
@@ -317,6 +349,8 @@ def main():
         print(f"Pose Strength: {pose_strength}")
     elif style_image:
         print(f"Style:  {style_image}")
+        if style_image2:
+            print(f"Style2: {style_image2}")
         print(f"Style Strength: {style_strength}")
     elif ref_image:
         print(f"Image:  {ref_image}")
@@ -357,11 +391,19 @@ def main():
         gen_image_strength = None
 
     # Pose image routes through controlnet_image_path on the pose generator
-    effective_controlnet = pose_image if pose_image else controlnet
-    effective_controlnet_strength = (
-        float(pose_strength) if pose_image else
-        float(controlnet_strength) if controlnet else None
-    )
+    # Style image2 also routes through controlnet_image_path for dual IP-Adapter
+    if pose_image:
+        effective_controlnet = pose_image
+        effective_controlnet_strength = float(pose_strength)
+    elif style_image2 and engine == "ipadapter":
+        effective_controlnet = style_image2
+        effective_controlnet_strength = None
+    elif controlnet:
+        effective_controlnet = controlnet
+        effective_controlnet_strength = float(controlnet_strength)
+    else:
+        effective_controlnet = None
+        effective_controlnet_strength = None
 
     result = generator.generate(
         prompt=prompt,

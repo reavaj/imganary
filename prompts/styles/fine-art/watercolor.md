@@ -11,4 +11,4 @@ Transparent, luminous watercolor painting. The medium's natural tendencies — w
 - **Rendering:** Economy of brushstrokes — suggest rather than define. Darkest darks applied last. No pure black — darkest mixes of complementaries.
 
 ## FLUX keywords
-watercolor painting, transparent washes, wet-into-wet, paper texture, loose brushwork, plein air, botanical illustration
+transparent watercolor painting on cold-pressed paper, wet-into-wet bleeds and blooms where colors merge on the page, visible paper grain showing through washes, highlights are unpainted white paper not white paint, loose economy of brushstrokes suggesting form not defining it, granulating pigments in shadows ultramarine and burnt sienna, soft bleeding edges with occasional sharp dry-brush detail, generous white space breathing room, cerulean blue aureolin yellow permanent rose transparent pigments, salt texture and splatter marks, no digital smoothness no flat fills no hard outlines

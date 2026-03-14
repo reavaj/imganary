@@ -11,4 +11,4 @@ The hand-painted cel animation aesthetic of 1980s-90s anime — Studio Ghibli, A
 - **Rendering:** Clean ink outlines on characters, no outlines on backgrounds. 2-3 tone shading (base, shadow, highlight). Hair and fabric with flowing dynamic curves.
 
 ## FLUX keywords
-anime, cel animation, Studio Ghibli, 90s anime, hand-painted background, cel shading, Japanese animation, cinematic anime
+hand-painted cel animation 90s anime, clean ink outlines on characters with flat 2-tone cel shading hard shadow edges, rich gouache painted backgrounds with visible brushstrokes in sky and foliage, dramatic rim lighting golden hour with purple-blue colored shadows, cinematic widescreen framing layered parallax depth, saturated warm amber and cool teal palette, Studio Ghibli Akira Ghost in the Shell aesthetic, flowing dynamic hair and fabric curves, light rays through dust particles atmospheric haze, not photorealistic not 3D rendered not AI smooth

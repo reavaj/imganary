@@ -376,17 +376,29 @@ class IPAdapterGenerator(ImageGenerator):
         self._logger.info("IP-Adapter pipeline ready")
 
     @torch.inference_mode()
-    def _encode_style_image(self, pil_image: Image.Image) -> list[torch.Tensor]:
-        """Encode a style reference image via SigLIP → pooler_output."""
+    def _encode_style_image(self, pil_image: Image.Image) -> torch.Tensor:
+        """Encode a single style reference image via SigLIP → pooler_output."""
         clip_input = self._clip_processor(
             images=[pil_image], return_tensors="pt"
         ).pixel_values
         pooler_output = self._image_encoder(
             clip_input.to(self._image_encoder.device, dtype=self._image_encoder.dtype)
         ).pooler_output  # (1, 1152)
+        return pooler_output  # (1, 1152)
 
-        # Format for pipeline: list of (batch, num_images, embed_dim)
-        return [pooler_output.unsqueeze(1)]  # [(1, 1, 1152)]
+    def _encode_style_images(
+        self, *pil_images: Image.Image
+    ) -> list[torch.Tensor]:
+        """Encode one or more style reference images and concatenate embeddings.
+
+        Each image is encoded separately via SigLIP, then concatenated along the
+        image dimension. The MLP projects each 1152-d embedding into 128 IP tokens,
+        so 2 images → 256 tokens the attention layers attend to.
+        """
+        embeddings = [self._encode_style_image(img) for img in pil_images]
+        # Stack along image dim: (1, N, 1152) where N = number of images
+        combined = torch.cat(embeddings, dim=0).unsqueeze(0)  # (1, N, 1152)
+        return [combined]
 
     def _set_scale(self, scale: float):
         """Update IP-Adapter influence scale on all processors."""
@@ -434,16 +446,27 @@ class IPAdapterGenerator(ImageGenerator):
 
             if image_path is not None:
                 pil_image = Image.open(Path(image_path).expanduser()).convert("RGB")
-                image_embeds = self._encode_style_image(pil_image)
+
+                # Check for second style image (passed via controlnet_image_path)
+                if controlnet_image_path is not None:
+                    pil_image2 = Image.open(
+                        Path(controlnet_image_path).expanduser()
+                    ).convert("RGB")
+                    image_embeds = self._encode_style_images(pil_image, pil_image2)
+                    self._logger.info(
+                        f"Generating with dual IP-Adapter (strength={style_strength})"
+                    )
+                else:
+                    image_embeds = self._encode_style_images(pil_image)
+                    self._logger.info(
+                        f"Generating with IP-Adapter (strength={style_strength})"
+                    )
+
                 neg_embeds = [torch.zeros_like(image_embeds[0])]
 
                 self._set_scale(style_strength)
                 gen_kwargs["ip_adapter_image_embeds"] = image_embeds
                 gen_kwargs["negative_ip_adapter_image_embeds"] = neg_embeds
-
-                self._logger.info(
-                    f"Generating with IP-Adapter (strength={style_strength})"
-                )
             else:
                 # IP-Adapter processors are always installed — provide zero embeddings
                 # so they don't crash on None. scale=0 means no style influence.

@@ -11,4 +11,4 @@ Classical oil painting in the tradition of the Old Masters — Vermeer, Rembrand
 - **Rendering:** Soft edges where forms turn, sharp edges at points of focus. Skin rendered with translucent layers. Fabric with heavy folds catching light.
 
 ## FLUX keywords
-oil painting, classical painting, Old Masters, chiaroscuro, impasto, Rembrandt lighting, fine art, canvas texture, baroque
+classical oil painting on canvas, thick impasto brushstrokes in highlights with visible palette knife texture, transparent luminous glazes in deep shadows that glow with reflected warm color, dramatic chiaroscuro single warm light source like Rembrandt or Caravaggio, earth tone foundation raw umber burnt sienna yellow ochre with vermillion and ultramarine accents, canvas weave visible through thin paint passages, soft sfumato edges where forms turn into shadow, craquelure age cracks in the paint surface, skin rendered with translucent layered glazes showing subsurface warmth, Old Masters technique baroque composition, not digital not smooth not flat

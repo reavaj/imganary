@@ -11,4 +11,4 @@ The nostalgic, ironic digital aesthetic of early internet culture — Windows 95
 - **Rendering:** Clean digital surfaces mixed with deliberately low-res artifacts. VHS tracking lines, JPEG compression, glitch effects. 3D-rendered objects with early CGI quality (smooth, plastic).
 
 ## FLUX keywords
-vaporwave, aesthetic, retrowave, pastel, marble bust, palm trees, sunset gradient, 90s internet, glitch, Windows 95, synthwave
+vaporwave aesthetic digital dreamscape, pastel pink lavender mint green baby blue color palette with hot magenta accents, sunset gradient background pink to orange to purple, smooth chrome and polished marble Greek bust floating in empty space, CRT scan lines VHS tracking glitch artifacts JPEG compression, checkerboard perspective grid floor receding to infinity, deliberately artificial centered symmetrical composition like a PowerPoint template, palm trees dolphins Roman columns all decontextualized, early 90s CGI plastic smooth 3D rendered objects, Windows 95 dead mall consumer nostalgia, overexposed dreamy soft diffused pink-purple ambient glow, not photorealistic not natural not organic
