@@ -75,6 +75,8 @@ class PoseGenerator(ImageGenerator):
         guidance: Optional[float] = None,
         controlnet_image_path: Optional[str | Path] = None,
         controlnet_strength: Optional[float] = None,
+        base_image_path: Optional[str | Path] = None,
+        base_image_strength: Optional[float] = None,
     ) -> GenerationResult:
         if not prompt or not prompt.strip():
             raise InvalidPromptError("Prompt cannot be empty")

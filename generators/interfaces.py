@@ -54,6 +54,8 @@ class ImageGenerator(ABC):
         guidance: Optional[float] = None,
         controlnet_image_path: Optional[str | Path] = None,
         controlnet_strength: Optional[float] = None,
+        base_image_path: Optional[str | Path] = None,
+        base_image_strength: Optional[float] = None,
     ) -> GenerationResult:
         """Generate an image from a text prompt, optionally using a reference image."""
         ...

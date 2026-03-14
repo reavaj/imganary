@@ -352,6 +352,9 @@ def main():
         if style_image2:
             print(f"Style2: {style_image2}")
         print(f"Style Strength: {style_strength}")
+        if ref_image and engine == "ipadapter":
+            print(f"Base:   {ref_image}")
+            print(f"Base Strength: {strength}")
     elif ref_image:
         print(f"Image:  {ref_image}")
         print(f"Strength: {strength}")
@@ -390,6 +393,14 @@ def main():
         gen_image_path = None
         gen_image_strength = None
 
+    # Route base_image_path: when --image + --style-image combined on ipadapter,
+    # the ref_image becomes the img2img base (preserves likeness via initial latents)
+    gen_base_image_path = None
+    gen_base_image_strength = None
+    if ref_image and style_image and engine == "ipadapter":
+        gen_base_image_path = ref_image
+        gen_base_image_strength = float(strength)
+
     # Pose image routes through controlnet_image_path on the pose generator
     # Style image2 also routes through controlnet_image_path for dual IP-Adapter
     if pose_image:
@@ -417,6 +428,8 @@ def main():
         guidance=settings.flux_guidance,
         controlnet_image_path=effective_controlnet,
         controlnet_strength=effective_controlnet_strength,
+        base_image_path=gen_base_image_path,
+        base_image_strength=gen_base_image_strength,
     )
 
     # Clean up temp blend file

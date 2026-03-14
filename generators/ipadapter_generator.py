@@ -255,6 +255,7 @@ class IPAdapterGenerator(ImageGenerator):
         self._settings = settings
         self._logger = get_logger("imganary.ipadapter", settings.log_level)
         self._pipe = None
+        self._pipe_is_img2img = False
         self._image_encoder = None
         self._image_proj = None
 
@@ -270,12 +271,20 @@ class IPAdapterGenerator(ImageGenerator):
             filename="ip-adapter.bin",
         )
 
-    def _load_pipeline(self):
+    def _load_pipeline(self, need_img2img: bool = False):
         """Lazy-load the FLUX pipeline, SigLIP encoder, and IP-Adapter weights."""
+        # If we already have the right pipeline type, reuse it
         if self._pipe is not None:
-            return
+            if need_img2img == self._pipe_is_img2img:
+                return
+            # Wrong pipeline type — need to reload
+            self._logger.info(
+                f"Switching pipeline: {'img2img' if need_img2img else 'txt2img'}"
+            )
+            self._pipe = None
 
-        from diffusers import FluxPipeline
+        from diffusers import FluxPipeline, FluxImg2ImgPipeline
+        PipelineClass = FluxImg2ImgPipeline if need_img2img else FluxPipeline
         from diffusers.models.embeddings import MultiIPAdapterImageProjection
         from transformers import SiglipVisionModel, SiglipImageProcessor
 
@@ -286,7 +295,7 @@ class IPAdapterGenerator(ImageGenerator):
         self._logger.info(
             "Loading FLUX.1-dev pipeline via diffusers (first run downloads ~24GB)..."
         )
-        pipe = FluxPipeline.from_pretrained(
+        pipe = PipelineClass.from_pretrained(
             "black-forest-labs/FLUX.1-dev",
             torch_dtype=dtype,
         )
@@ -373,6 +382,7 @@ class IPAdapterGenerator(ImageGenerator):
         del state_dict
 
         self._pipe = pipe
+        self._pipe_is_img2img = need_img2img
         self._logger.info("IP-Adapter pipeline ready")
 
     @torch.inference_mode()
@@ -419,6 +429,8 @@ class IPAdapterGenerator(ImageGenerator):
         guidance: Optional[float] = None,
         controlnet_image_path: Optional[str | Path] = None,
         controlnet_strength: Optional[float] = None,
+        base_image_path: Optional[str | Path] = None,
+        base_image_strength: Optional[float] = None,
     ) -> GenerationResult:
         if not prompt or not prompt.strip():
             raise InvalidPromptError("Prompt cannot be empty")
@@ -431,7 +443,7 @@ class IPAdapterGenerator(ImageGenerator):
         guidance = guidance if guidance is not None else self._settings.flux_guidance
         style_strength = image_strength if image_strength is not None else 0.7
 
-        self._load_pipeline()
+        self._load_pipeline(need_img2img=base_image_path is not None)
 
         start = time.monotonic()
         try:
@@ -478,6 +490,17 @@ class IPAdapterGenerator(ImageGenerator):
                 gen_kwargs["negative_ip_adapter_image_embeds"] = zero_embeds
 
                 self._logger.info("Generating txt2img (no style image)")
+
+            # img2img: use base image as starting latent (orthogonal to IP-Adapter)
+            if base_image_path is not None:
+                pil_base = Image.open(
+                    Path(base_image_path).expanduser()
+                ).convert("RGB").resize((width, height))
+                gen_kwargs["image"] = pil_base
+                gen_kwargs["strength"] = base_image_strength if base_image_strength is not None else 0.5
+                self._logger.info(
+                    f"img2img base: {base_image_path} (strength={gen_kwargs['strength']})"
+                )
 
             result = self._pipe(**gen_kwargs)
             result.images[0].save(output_path)
