@@ -248,6 +248,31 @@ def main():
     pose_image = _flag("--pose-image")
     pose_strength = _flag("--pose-strength", "0.8")
 
+    # Detect unrecognized flags
+    known_flags = {
+        "--model", "--steps", "--seed", "--width", "--height", "--output",
+        "--image", "--image2", "--strength", "--guidance", "--lora",
+        "--controlnet", "--controlnet-strength", "--grade", "--natural",
+        "--engine", "--style-image", "--style-image2", "--style-strength",
+        "--pose-image", "--pose-strength",
+        "--raw", "--hd", "--portrait",
+    }
+    unknown = [a for a in sys.argv[2:] if a.startswith("--") and a not in known_flags]
+    if unknown:
+        print(f"Error: Unrecognized flag(s): {', '.join(unknown)}")
+        print()
+        print("Valid flags:")
+        print("  --model dev|schnell       --steps N              --seed N")
+        print("  --width N                 --height N             --output path.png")
+        print("  --image path              --image2 path          --strength 0.0-1.0")
+        print("  --guidance N              --lora path            --raw  --hd  --portrait")
+        print("  --controlnet path         --controlnet-strength 0.0-1.0")
+        print("  --grade minimal|natural|film                     --natural [AMOUNT]")
+        print("  --engine mflux|ipadapter|pose")
+        print("  --style-image path        --style-image2 path    --style-strength 0.0-1.0")
+        print("  --pose-image path         --pose-strength 0.0-1.0")
+        sys.exit(1)
+
     # --style-image implies standalone IP-Adapter engine (no server needed)
     if style_image and engine == "mflux":
         engine = "ipadapter"

@@ -9,10 +9,11 @@ This constraint applies to the ENTIRE prompt — not just the physical descripti
 Required imperfection cues (use at least 3-4 per prompt with human subjects):
 - "slightly asymmetrical features", "slightly crooked nose", "visible pores and skin texture"
 - "natural under-eye shadows", "imperfect teeth", "slightly uneven skin tone"
-- "casual unstyled hair", and vary body type: "stocky build", "short stature", "pear-shaped", "curvy", "wiry frame", "soft and heavy", "tall and lanky", "athletic but not muscular"
-- "faint acne scarring", "minor blemishes", "natural laugh lines"
+- "casual unstyled hair",
+- "curvy", "petite stature", "pear-shaped", "stocky build", "wiry frame", "soft and heavy", "tall and lanky", "athletic but not muscular"
+- "minor blemishes", "natural laugh lines", "faint acne scarring" 
 
-Banned words/phrases for approachable figures: beautiful, stunning, gorgeous, perfect, flawless, striking, statuesque, chiseled, sculpted, angular features, piercing eyes, high cheekbones, aloof, Vogue, editorial, high-fashion, runway, couture, glamour, fierce.
+Banned words/phrases for approachable figures: stunning, gorgeous, perfect, flawless, striking, statuesque, chiseled, sculpted, angular features, piercing eyes, high cheekbones, aloof, Vogue, editorial, high-fashion, runway, couture, glamour, fierce.
 
 Only use idealized beauty language when the user explicitly asks for it (e.g., "supermodel", "glamorous", "striking", "beautiful woman").
 
