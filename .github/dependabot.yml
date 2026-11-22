@@ -1,0 +1,21 @@
+version: 2
+
+# No .github/workflows/ in this repo, so no github-actions ecosystem (it would fail
+# every run with no workflow files). Add it back when the repo gains a workflow.
+updates:
+  # requirements.txt
+  # Dependencies are minimum versions (>=), so a fresh install already gets the
+  # latest release. increase-if-necessary keeps Dependabot from opening a PR every
+  # week just to raise the minimums; it proposes a change only when a release falls
+  # outside the allowed range. Security alerts and fixes cover known vulnerabilities.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: increase-if-necessary
+    groups:
+      pip-weekly:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+    labels: ["dependencies"]
